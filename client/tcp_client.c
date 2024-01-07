@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
 		printf("Error!Can not connect to sever! Client exit imediately!\n");
 		return -1;
 	}
+
 	// Step 4: Communicate with server
 	// send message
 	do

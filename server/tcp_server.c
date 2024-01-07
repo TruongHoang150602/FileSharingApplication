@@ -1,6 +1,9 @@
 #include "ServerFuncs.h"
 #include <pthread.h>
 
+#define BUFF_SIZE 1024
+#define ACCOUNT_FILE_PATH "../account.txt"
+
 /*
  * Receive and echo message to client
  * [IN] sockfd: socket descriptor that connects to client
@@ -12,101 +15,112 @@ typedef struct arg_struct
 	FILE *fp;
 } Args;
 
-void *echo(void *arg);
+void cleanup(int listenfd, FILE *db);
+void *handleClient(void *arg);
 
 int main(int argc, char *argv[])
 {
-
-	int listenfd, *connfd;
-	struct sockaddr_in server;	/* server's address information */
-	struct sockaddr_in *client; /* client's address information */
-	int sin_port;
-	unsigned int sin_size;
-	pthread_t tid;
-
 	if (argc < 2)
 	{
 		printf("No specified port.\n");
-		exit(0);
+		exit(EXIT_FAILURE);
 	}
 
 	Account *root = (Account *)calloc(1, sizeof(Account));
-
-	FILE *db = fopen("../account.txt", "r+");
+	FILE *db = fopen(ACCOUNT_FILE_PATH, "r+");
 	if (db == NULL)
 	{
-		fprintf(stderr, "cannot open target file %s\n", argv[1]);
-		exit(2);
+		fprintf(stderr, "Cannot open target file %s\n", ACCOUNT_FILE_PATH);
+		exit(EXIT_FAILURE);
 	}
 	readFromFile(root, db);
 
-	// Step 1: Construct a TCP socket to listen connection request
+	int listenfd, sin_port;
+	struct sockaddr_in server;
+	pthread_t tid;
+
 	if ((listenfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-	{ /* calls socket() */
-		perror("\nError: ");
-		return 0;
+	{
+		perror("Error creating socket");
+		cleanup(listenfd, db);
+		exit(EXIT_FAILURE);
 	}
 
-	// Step 2: Bind address to socket
 	sin_port = atoi(argv[1]);
-
 	bzero(&server, sizeof(server));
 	server.sin_family = AF_INET;
 	server.sin_port = htons(sin_port);
-	server.sin_addr.s_addr = htonl(INADDR_ANY); /* INADDR_ANY puts your IP address automatically */
+	server.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	if (bind(listenfd, (struct sockaddr *)&server, sizeof(server)) == -1)
 	{
-		perror("\nError: ");
-		return 0;
+		perror("Error binding");
+		cleanup(listenfd, db);
+		exit(EXIT_FAILURE);
 	}
 
-	// Step 3: Listen request from client
 	if (listen(listenfd, BACKLOG) == -1)
 	{
-		perror("\nError: ");
-		return 0;
+		perror("Error listening");
+		cleanup(listenfd, db);
+		exit(EXIT_FAILURE);
 	}
 
-	// Step 4: Communicate with client
-	sin_size = sizeof(struct sockaddr_in);
-	client = malloc(sin_size);
+	printf("Server is running on port %d\n", sin_port);
+
+	struct sockaddr_in client;
+	socklen_t sin_size = sizeof(struct sockaddr_in);
+
 	while (1)
 	{
-		connfd = malloc(sizeof(int));
-		if ((*connfd = accept(listenfd, (struct sockaddr *)client, &sin_size)) == -1)
-			perror("\nError: ");
+		int *connfd = malloc(sizeof(int));
+		if ((*connfd = accept(listenfd, (struct sockaddr *)&client, &sin_size)) == -1)
+		{
+			perror("Error accepting connection");
+			free(connfd);
+			continue;
+		}
 
-		printf("You got a connection from %s\n", inet_ntoa(client->sin_addr)); /* prints client's IP */
-																			   // generate an argument for passing to echo
+		printf("Connection established from %s\n", inet_ntoa(client.sin_addr));
+
 		Args *arg = (Args *)malloc(sizeof(Args));
 		arg->connfd = *connfd;
 		arg->root = root;
 		arg->fp = db;
-		/* For each client, spawns a thread, and the thread handles the new client */
-		pthread_create(&tid, NULL, echo, (void *)arg);
+
+		if (pthread_create(&tid, NULL, handleClient, (void *)arg) != 0)
+		{
+			perror("Error creating thread");
+			free(arg);
+			close(*connfd);
+			free(connfd);
+			continue;
+		}
 	}
 
-	close(listenfd);
-	fclose(db);
+	cleanup(listenfd, db);
 	return 0;
 }
 
-void *echo(void *arg)
+void cleanup(int listenfd, FILE *db)
 {
-	int sockfd;
-	Account *root;
-	FILE *db;
+	close(listenfd);
+	fclose(db);
+	// Add additional cleanup steps as needed
+}
+
+void *handleClient(void *arg)
+{
 
 	char recv_data[BUFF_SIZE];
 	int bytes_received;
 	int status;
 
-	sockfd = ((Args *)(arg))->connfd;
-	root = ((Args *)(arg))->root;
-	db = ((Args *)(arg))->fp;
-	free(arg);
+	int sockfd = ((Args *)arg)->connfd;
+	Account *root = ((Args *)arg)->root;
+	FILE *db = ((Args *)arg)->fp;
 
+	free(arg);
 	pthread_detach(pthread_self());
 
 	// start conversation
@@ -150,5 +164,6 @@ void *echo(void *arg)
 		}
 	} // end conversation
 
+	close(sockfd);
 	pthread_exit(NULL);
 }
