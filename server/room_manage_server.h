@@ -21,16 +21,19 @@
 #define MSG_BLOCKED "BLOCKED"
 #define MSG_ERROR "ERROR"
 
-typedef struct roomNode {
-	char* roomName;
-	char* owner;
-	struct roomNode* next;
+typedef struct roomNode
+{
+	char *roomName;
+	char *owner;
+	char *member[10];
+	struct roomNode *next;
 } Room;
 
 void homepage(int sockfd);
-void readRoomInfo(Room* root, FILE* fp);
-void createRoom(Room* root, int conn_sock, FILE* db);
-void getIntoRoom(Room* root, int conn_sock, FILE* db);
-void searchRoom(Room* root, int conn_sock);
-void freeRoomList(Room* root);
-void fileTransfer(int conn_sock, char* path, int permission);
+void readRoomInfo(Room *root, FILE *fp);
+void createRoom(Room *root, int conn_sock, FILE *db);
+void getIntoRoom(Room *root, int conn_sock, FILE *db);
+void searchRoom(Room *root, int conn_sock);
+void freeRoomList(Room *root);
+void fileTransfer(int conn_sock, char *path, int permission);
+void getListGroup(Room *root, int conn_sock);

@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 	if (connect(client_sock, (struct sockaddr *)&server_addr, sizeof(struct sockaddr)) < 0)
 	{
 		printf("Error!Can not connect to sever! Client exit imediately!\n");
-		return 0;
+		return -1;
 	}
 
 	// Step 4: Communicate with server

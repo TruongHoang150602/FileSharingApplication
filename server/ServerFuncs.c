@@ -483,6 +483,9 @@ void homepage(int sockfd)
 		case 3:
 			searchRoom(root, sockfd);
 			break;
+		case 4:
+			getListGroup(root, sockfd);
+			break;
 		default: // end process
 			freeRoomList(root);
 			break;
