@@ -394,9 +394,10 @@ void getListGroup(Room *root, int conn_sock)
 	{
 		strcat(list_group, tmp->roomName);
 		strcat(list_group, "\n");
-		printf("%s", tmp->owner);
+		printf("Owner: %s \n", tmp->owner);
 		tmp = tmp->next;
 	}
+	printf("%s", list_group);
 	bytes_sent = send(conn_sock, list_group, strlen(list_group), 0);
 	if (bytes_sent <= 0)
 	{

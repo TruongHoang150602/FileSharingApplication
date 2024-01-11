@@ -21,11 +21,24 @@
 #define MSG_BLOCKED "BLOCKED"
 #define MSG_ERROR "ERROR"
 
+typedef struct Member
+{
+	char *name;
+	struct Member *next;
+} Member;
+
+typedef struct Approve
+{
+	char *name;
+	struct Approve *next;
+} Approve;
+
 typedef struct roomNode
 {
 	char *roomName;
 	char *owner;
-	char *member[10];
+	struct Member *member;
+	struct Approve *approve;
 	struct roomNode *next;
 } Room;
 
