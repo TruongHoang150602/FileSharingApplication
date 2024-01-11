@@ -37,8 +37,8 @@ typedef struct roomNode
 {
 	char *roomName;
 	char *owner;
-	struct Member *member;
-	struct Approve *approve;
+	struct Member *members;
+	struct Approve *approves;
 	struct roomNode *next;
 } Room;
 

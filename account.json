@@ -2,25 +2,25 @@
   {
     "username": "Quang",
     "password": "Quang",
-    "type": 1,
+    "status": 1,
     "invitation": ["Nam_Folder", "Quang_Folder", "Truong_Folder"]
   },
   {
     "username": "Nam",
     "password": "Nam",
-    "type": 1,
+    "status": 1,
     "invitation": ["Nam_Folder", "Quang_Folder", "Truong_Folder"]
   },
   {
     "username": "Truong",
     "password": "Truong",
-    "type": 1,
+    "status": 1,
     "invitation": ["Nam_Folder", "Quang_Folder", "Truong_Folder"]
   },
   {
     "username": "Test",
     "password": "Test",
-    "type": 1,
+    "status": 1,
     "invitation": ["Nam_Folder", "Quang_Folder", "Truong_Folder"]
   }
 ]

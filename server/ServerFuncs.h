@@ -15,7 +15,7 @@
 
 #include "room_manage_server.h"
 
-#define BACKLOG 20   /* Number of allowed connections */
+#define BACKLOG 20 /* Number of allowed connections */
 #define BUFF_SIZE 1024
 
 #define ACTIVE 1
@@ -27,17 +27,25 @@
 #define MSG_BLOCKED "BLOCKED"
 #define MSG_ERROR "ERROR"
 
-typedef struct accountSaveDataLinkedList {
-	char* username;
-	char* password;
+typedef struct Invitation
+{
+	char *username;
+	struct Invitation *next;
+} Invitation;
+
+typedef struct accountSaveDataLinkedList
+{
+	char *username;
+	char *password;
 	int status;
-	struct accountSaveDataLinkedList* next;
+	struct Invitation *invitaions;
+	struct accountSaveDataLinkedList *next;
 } Account;
 
-void readFromFile(Account* root, FILE* fp);
-void registerAccount(Account* root, int client_sock, FILE* db);
-void signInAccount(Account* root, int client_sock, FILE* db, int* isLoggedIn);
-void searchAccount(Account* root, int client_sock);
-void signOutAccount(Account* root, int client_sock, int* isLoggedIn);
-void printFile(FILE* fp);
-void freeAccount(Account* root);
+void readFromFile(Account *root, FILE *fp);
+void registerAccount(Account *root, int client_sock, FILE *db);
+void signInAccount(Account *root, int client_sock, FILE *db, int *isLoggedIn);
+void searchAccount(Account *root, int client_sock);
+void signOutAccount(Account *root, int client_sock, int *isLoggedIn);
+void printFile(FILE *fp);
+void freeAccount(Account *root);
