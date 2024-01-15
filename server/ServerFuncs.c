@@ -1,17 +1,33 @@
 #include "ServerFuncs.h"
+#include <cjson/cJSON.h>
 
-void readFromFile(Account *root, FILE *fp)
+void readFromFile(Account *root, FILE *file)
 {
-	char username[255];
-	char password[64];
-	int status;
 	Account *tmp = root;
 
-	fseek(fp, 0, SEEK_SET);
+	// Lấy kích thước của tệp
+	fseek(file, 0, SEEK_END);
+	long file_size = ftell(file);
+	fseek(file, 0, SEEK_SET);
 
-	while (!feof(fp))
+	// Đọc nội dung của tệp vào một chuỗi
+	char *json_content_root = (char *)malloc(file_size + 1);
+	fread(json_content_root, 1, file_size, file);
+
+	// Phân tích tệp JSON thành một đối tượng cJSON
+	cJSON *json_array = cJSON_Parse(json_content_root);
+	free(json_content_root);
+
+	// Lặp qua mỗi đối tượng trong mảng JSON
+	cJSON *jsonObject = NULL;
+	cJSON_ArrayForEach(jsonObject, json_array)
 	{
-		fscanf(fp, "%s %s %d\n", username, password, &status);
+		// Lấy giá trị các trường từ đối tượng
+		const char *username = cJSON_GetObjectItemCaseSensitive(jsonObject, "username")->valuestring;
+		const char *password = cJSON_GetObjectItemCaseSensitive(jsonObject, "password")->valuestring;
+		int status = cJSON_GetObjectItemCaseSensitive(jsonObject, "status")->valueint;
+
+		// Lưu thông tin của đối tượng
 		Account *newAccount = (Account *)malloc(sizeof(Account));
 		newAccount->username = strdup(username);
 		newAccount->password = strdup(password);
@@ -21,6 +37,9 @@ void readFromFile(Account *root, FILE *fp)
 		tmp->next = newAccount;
 		tmp = tmp->next;
 	}
+
+	// Giải phóng bộ nhớ
+	cJSON_Delete(json_array);
 
 	return;
 }
@@ -137,9 +156,41 @@ void registerAccount(Account *root, int conn_sock, FILE *db)
 		printf("%s\n", newAccount->username);
 		printf("%s\n", newAccount->password);
 
+		// Mở file account.json để đọc dữ liệu
 		fseek(db, 0, SEEK_END);
-		int bytes_written = fprintf(db, "%s %s %d\n", username, password, ACTIVE);
-		fflush(db);
+		long file_size = ftell(db);
+		fseek(db, 0, SEEK_SET);
+		char *json_content = (char *)malloc(file_size + 1);
+		fread(json_content, 1, file_size, db);
+
+		// Phân tích tệp JSON thành đối tượng cJSON
+		cJSON *jsonArray = cJSON_Parse(json_content);
+		free(json_content);
+		fclose(db);
+
+		// Tạo đối tượng cjson
+		cJSON *json = cJSON_CreateObject();
+		cJSON *array = cJSON_CreateArray();
+		cJSON_AddStringToObject(json, "username", newAccount->username);
+		cJSON_AddStringToObject(json, "password", newAccount->password);
+		cJSON_AddNumberToObject(json, "status", newAccount->status);
+		cJSON_AddItemToObject(json, "invitation", array);
+		// Thêm đối tượng mới vào mảng đã phân tích từ tệp JSON
+		cJSON_AddItemToArray(jsonArray, json);
+		// Mở file và replace nội dung
+		FILE *file_write = fopen("../account.json", "w");
+		if (file_write == NULL)
+		{
+			fprintf(stderr, "Cannot open target file.");
+			exit(EXIT_FAILURE);
+		}
+		char *json_string = cJSON_Print(jsonArray);
+		int bytes_written = fprintf(file_write, "%s", json_string);
+		fclose(file_write);
+
+		// Giải phóng bộ nhớ
+		cJSON_Delete(jsonArray);
+		free(json_string);
 		printf("Total bytes written: %d\n", bytes_written);
 
 		bytes_sent = send(conn_sock, MSG_TRUE, strlen(MSG_TRUE), 0);

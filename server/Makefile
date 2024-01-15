@@ -2,7 +2,7 @@ CFLAGS =-Wall
 CC = gcc
 
 server: ServerFuncs.o tcp_server.o FileTransferServer.o room_manage_server.o
-	${CC} ${CFLAGS} -lpthread tcp_server.o ServerFuncs.o FileTransferServer.o room_manage_server.o -o server
+	${CC} ${CFLAGS} -lpthread tcp_server.o ServerFuncs.o FileTransferServer.o room_manage_server.o -o server -lcjson
 
 client: ServerAPI.o  tcp_client.o FileTransferClient.o room_client.o
 	${CC} ${CFLAGS} tcp_client.o ServerAPI.o FileTransferClient.o room_client.o -o client
@@ -14,7 +14,7 @@ tcp_client.o : tcp_client.c
 	${CC} -c ${CFLAGS} tcp_client.c
 
 ServerFuncs.o :ServerFuncs.c 
-	${CC} -c ${CFLAGS} ServerFuncs.c 
+	${CC} -c ${CFLAGS} -lcjson ServerFuncs.c 
 
 ServerAPI.o: ServerAPI.c 
 	${CC} -c ${CFLAGS} ServerAPI.c 

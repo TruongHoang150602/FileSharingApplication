@@ -22,5 +22,11 @@
     "password": "Test",
     "status": 1,
     "invitation": ["Nam_Folder", "Quang_Folder", "Truong_Folder"]
+  },
+  {
+    "username": "testt",
+    "password": "testt",
+    "status": 1,
+    "invitation": []
   }
 ]

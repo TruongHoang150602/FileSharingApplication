@@ -2,7 +2,7 @@
 #include <pthread.h>
 
 #define BUFF_SIZE 1024
-#define ACCOUNT_FILE_PATH "../account.txt"
+#define ACCOUNT_FILE_PATH "../account.json"
 
 /*
  * Receive and echo message to client
