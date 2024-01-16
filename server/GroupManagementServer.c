@@ -223,13 +223,13 @@ void getIntoGroup(Group *root, int conn_sock, FILE *db)
 			if (strcmp(tmp->owner, owner) == 0)
 			{ // can delete file
 				fprintf(stderr, "Client is owner of this group.\n");
-				fileTransfer(conn_sock, groupName, 1);
+				groupManager(conn_sock, groupName, 1);
 				return;
 			}
 			else
 			{
 				fprintf(stderr, "Client is not owner of this group.\n");
-				fileTransfer(conn_sock, groupName, 0);
+				groupManager(conn_sock, groupName, 0);
 				return;
 			}
 		}
@@ -318,7 +318,7 @@ void freeGroupList(Group *root)
 	}
 }
 
-void fileTransfer(int conn_sock, char *path, int permission)
+void groupManager(int conn_sock, char *path, int permission)
 {
 	char recv_data[BUFF_SIZE];
 	int bytes_received;
@@ -329,6 +329,7 @@ void fileTransfer(int conn_sock, char *path, int permission)
 	// start conversation
 	do
 	{
+		printf("Group manager");
 		// receives message from client
 		memset(recv_data, 0, BUFF_SIZE);
 		bytes_received = recv(conn_sock, recv_data, BUFF_SIZE, 0); // blocking
@@ -343,13 +344,13 @@ void fileTransfer(int conn_sock, char *path, int permission)
 		switch (choice)
 		{
 		case 1:
-			recv_file(conn_sock, path); // loop receives files from client
+			fileManager(conn_sock, path, permission);
 			break;
 		case 2:
 			send_file(conn_sock, path); // loop send files to client
 			break;
 		case 3:
-			delete_file(conn_sock, path, permission);
+			deleteFile(conn_sock, path, permission);
 			break;
 		case 4:
 			createFolder(conn_sock, path);

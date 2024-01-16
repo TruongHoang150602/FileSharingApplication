@@ -23,9 +23,12 @@
 #define MSG_ACCEPT "Accept"
 #define MSG_ERROR "ERROR"
 
+void fileManager(int conn_sock, char *path, int permission);
 int recv_file(int conn_sock, char dir_name[]);
 int send_file(int conn_sock, char dir_name[]);
 char *extract_file_name(char *file_path);
 char *get_file_path(int conn_sock, char *dir_name);
-int delete_file(int conn_sock, char *dir_name, int permission);
+int deleteFile(int conn_sock, char *dir_name, int permission);
 int createFolder(int conn_sock, char *dir_name);
+void getListFile(int conn_sock, char *dir_name);
+int renameFile(int conn_sock, char *dir_name, int permission);

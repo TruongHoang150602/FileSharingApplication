@@ -48,6 +48,6 @@ void createGroup(Group *root, int conn_sock, FILE *db);
 void getIntoGroup(Group *root, int conn_sock, FILE *db);
 void searchGroup(Group *root, int conn_sock);
 void freeGroupList(Group *root);
-void fileTransfer(int conn_sock, char *path, int permission);
+void groupManager(int conn_sock, char *path, int permission);
 void getListGroup(Group *root, int conn_sock);
 void getGroupMember(Group *root, int conn_sock);
