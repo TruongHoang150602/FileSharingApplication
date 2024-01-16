@@ -315,16 +315,16 @@ int homepage(int client_sock, char *sessionID)
 	int cache;
 
 	int status;
-	char *roomID = (char *)malloc(255);
+	char *groupID = (char *)malloc(255);
 
 	// send message
 	do
 	{
-		printf("Room management\n");
+		printf("Group management\n");
 		printf("---------------------------------------------\n");
-		printf("	1. Create room\n");
-		printf("	2. Get into room\n");
-		printf("	3. Search for room\n");
+		printf("	1. Create group\n");
+		printf("	2. Get into group\n");
+		printf("	3. Search for group\n");
 		printf("	4. Get list group\n");
 			printf("Your choice (1-4) other to quit):\n");
 		scanf("%d", &choice);
@@ -342,22 +342,22 @@ int homepage(int client_sock, char *sessionID)
 		switch (choice)
 		{
 		case 1:
-			createRoom(client_sock, sessionID);
+			createGroup(client_sock, sessionID);
 			break;
 		case 2:
-			getIntoRoom(client_sock, sessionID, &status, &roomID);
+			getIntoGroup(client_sock, sessionID, &status, &groupID);
 			if (status == 1)
 			{
 				fileTransfer(client_sock);
 				status = 0;	  // after fileTransfer, set status to 0 (log out)
-				free(roomID); // free roomID
+				free(groupID); // free groupID
 			}
 			else
-				printf("No room specified. Try again.\n");
+				printf("No group specified. Try again.\n");
 
 			break;
 		case 3:
-			searchRoom(client_sock);
+			searchGroup(client_sock);
 			break;
 		case 4:
 			getListGroup(client_sock);
@@ -368,6 +368,6 @@ int homepage(int client_sock, char *sessionID)
 
 	} while (choice > 0 && choice < 4);
 
-	free(roomID);
+	free(groupID);
 	return 0;
 }

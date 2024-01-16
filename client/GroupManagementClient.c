@@ -1,8 +1,8 @@
-#include "room_client.h"
+#include "GroupManagementClient.h"
 
-void createRoom(int client_sock, char *owner)
+void createGroup(int client_sock, char *owner)
 { // done
-	char roomName[255];
+	char groupName[255];
 	char buffer[BUFF_SIZE];
 	int bytes_sent, bytes_received;
 
@@ -20,12 +20,12 @@ void createRoom(int client_sock, char *owner)
 	// send username to server
 	while (1)
 	{
-		printf("Please enter the room name: ");
-		fgets(roomName, 255, stdin);
-		roomName[strlen(roomName) - 1] = '\0';
+		printf("Please enter the group name: ");
+		fgets(groupName, 255, stdin);
+		groupName[strlen(groupName) - 1] = '\0';
 
 		// enter nothing, cancel registerAccount
-		if (roomName[0] == '\0')
+		if (groupName[0] == '\0')
 		{
 			bytes_sent = send(client_sock, MSG_FALSE, strlen(MSG_FALSE), 0);
 			if (bytes_sent <= 0)
@@ -36,7 +36,7 @@ void createRoom(int client_sock, char *owner)
 			return;
 		}
 
-		bytes_sent = send(client_sock, roomName, strlen(roomName), 0);
+		bytes_sent = send(client_sock, groupName, strlen(groupName), 0);
 		if (bytes_sent <= 0)
 		{
 			fprintf(stderr, "Failed to connect to server. Try again.\n");
@@ -55,7 +55,7 @@ void createRoom(int client_sock, char *owner)
 
 		if (strcmp(buffer, MSG_DUP) == 0)
 		{
-			fprintf(stderr, "Room existed.\n");
+			fprintf(stderr, "Group existed.\n");
 			continue;
 		}
 		else if (strcmp(buffer, MSG_ERROR) == 0)
@@ -78,7 +78,7 @@ void createRoom(int client_sock, char *owner)
 	bytes_received = recv(client_sock, buffer, BUFF_SIZE, 0);
 	if (bytes_received <= 0)
 	{
-		fprintf(stderr, "Failed to verify room permission. Try again.\n");
+		fprintf(stderr, "Failed to verify group permission. Try again.\n");
 		return;
 	}
 	else
@@ -87,14 +87,14 @@ void createRoom(int client_sock, char *owner)
 	if (strcmp(buffer, MSG_ERROR) == 0)
 		fprintf(stderr, "Error occurred. Try again.\n");
 	else
-		printf("Successful create room.\n");
+		printf("Successful create group.\n");
 
 	return;
 }
 
-void getIntoRoom(int client_sock, char *owner, int *status, char **sessionID)
+void getIntoGroup(int client_sock, char *owner, int *status, char **sessionID)
 { // done
-	char roomName[255];
+	char groupName[255];
 	char buffer[BUFF_SIZE];
 	int bytes_sent, bytes_received;
 
@@ -110,11 +110,11 @@ void getIntoRoom(int client_sock, char *owner, int *status, char **sessionID)
 		return;
 	}
 	// send username to server
-	printf("Please enter the room name: ");
-	fgets(roomName, 255, stdin);
-	roomName[strlen(roomName) - 1] = '\0';
+	printf("Please enter the group name: ");
+	fgets(groupName, 255, stdin);
+	groupName[strlen(groupName) - 1] = '\0';
 	// enter nothing, cancel signInAccount
-	if (roomName[0] == '\0')
+	if (groupName[0] == '\0')
 	{
 		bytes_sent = send(client_sock, MSG_FALSE, strlen(MSG_FALSE), 0);
 		if (bytes_sent <= 0)
@@ -125,7 +125,7 @@ void getIntoRoom(int client_sock, char *owner, int *status, char **sessionID)
 		return;
 	}
 
-	bytes_sent = send(client_sock, roomName, strlen(roomName), 0);
+	bytes_sent = send(client_sock, groupName, strlen(groupName), 0);
 	if (bytes_sent <= 0)
 	{
 		fprintf(stderr, "Failed to connect to server. Try again.\n");
@@ -136,7 +136,7 @@ void getIntoRoom(int client_sock, char *owner, int *status, char **sessionID)
 	bytes_received = recv(client_sock, buffer, BUFF_SIZE, 0);
 	if (bytes_received <= 0)
 	{
-		fprintf(stderr, "Failed to verify room name. Try again.\n");
+		fprintf(stderr, "Failed to verify group name. Try again.\n");
 		return;
 	}
 	else
@@ -144,7 +144,7 @@ void getIntoRoom(int client_sock, char *owner, int *status, char **sessionID)
 
 	if (strcmp(buffer, MSG_FALSE) == 0)
 	{ // account not found
-		fprintf(stderr, "Room not found. Try again.\n");
+		fprintf(stderr, "Group not found. Try again.\n");
 		return;
 	}
 	else if (strcmp(buffer, MSG_ERROR) == 0)
@@ -171,25 +171,25 @@ void getIntoRoom(int client_sock, char *owner, int *status, char **sessionID)
 	else
 		buffer[bytes_received] = '\0';
 
-	printf("You logged into room: %s\n", buffer);
+	printf("You logged into group: %s\n", buffer);
 	*status = 1;
-	// roomID will be kept at sessionID(roomID)
-	*sessionID = strdup(buffer); // save room name are being logged in
+	// groupID will be kept at sessionID(groupID)
+	*sessionID = strdup(buffer); // save group name are being logged in
 
 	return;
 }
 
-void searchRoom(int client_sock)
+void searchGroup(int client_sock)
 { // done
-	char roomName[255];
+	char groupName[255];
 	char buffer[BUFF_SIZE];
 	int bytes_sent, bytes_received;
 
-	printf("Please enter the room name: ");
-	fgets(roomName, 255, stdin);
-	roomName[strlen(roomName) - 1] = '\0';
+	printf("Please enter the group name: ");
+	fgets(groupName, 255, stdin);
+	groupName[strlen(groupName) - 1] = '\0';
 	// enter nothing, cancel searchAccount
-	if (roomName[0] == '\0')
+	if (groupName[0] == '\0')
 	{
 		bytes_sent = send(client_sock, MSG_FALSE, strlen(MSG_FALSE), 0);
 		if (bytes_sent <= 0)
@@ -200,7 +200,7 @@ void searchRoom(int client_sock)
 		return;
 	}
 
-	bytes_sent = send(client_sock, roomName, strlen(roomName), 0);
+	bytes_sent = send(client_sock, groupName, strlen(groupName), 0);
 	if (bytes_sent <= 0)
 	{
 		fprintf(stderr, "Failed to connect to server. Try again.\n");
@@ -217,9 +217,9 @@ void searchRoom(int client_sock)
 		buffer[bytes_received] = '\0';
 
 	if (strcmp(buffer, MSG_TRUE) == 0) // return true mean user found and active
-		printf("Room %s is existed.\n", roomName);
+		printf("Group %s is existed.\n", groupName);
 	else
-		printf("Cannot find room %s.\n", roomName);
+		printf("Cannot find group %s.\n", groupName);
 
 	return;
 }
@@ -273,7 +273,7 @@ void fileTransfer(int client_sock)
 			delete (client_sock);
 			break;
 		case 4:
-			createSubFolder(client_sock);
+			createFolder(client_sock);
 			break;
 		default:
 			break;

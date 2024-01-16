@@ -26,4 +26,4 @@ char* extract_file_name(char* file_path);
 void clean_and_restore(FILE** fp);
 int request_file(int client_sock);
 int delete(int client_sock);
-int createSubFolder(int client_sock);
+int createFolder(int client_sock);

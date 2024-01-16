@@ -1,6 +1,6 @@
-#include<stdlib.h>
-#include<stdio.h>
-#include<string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -15,11 +15,11 @@
 #define MSG_BLOCKED "BLOCKED"
 #define MSG_ERROR "ERROR"
 
-#include "FileTransferClient.h"
+#include "FileManagementClient.h"
 
-int homepage(int client_sock, char* sessionID);
-void createRoom(int client_sock, char* owner);
-void getIntoRoom(int client_sock, char* owner, int *status, char **sessionID);
-void searchRoom(int client_sock);
+int homepage(int client_sock, char *sessionID);
+void createGroup(int client_sock, char *owner);
+void getIntoGroup(int client_sock, char *owner, int *status, char **sessionID);
+void searchGroup(int client_sock);
 void fileTransfer(int client_sock);
 void getListGroup(int client_sock);

@@ -1,20 +1,20 @@
 CFLAGS =-Wall
 CC = gcc
 
-client: ServerAPI.o  tcp_client.o FileTransferClient.o room_client.o
-	${CC} ${CFLAGS} tcp_client.o ServerAPI.o FileTransferClient.o room_client.o -o client
+client: ServerAPI.o  TCPClient.o FileManagementClient.o GroupManagementClient.o
+	${CC} ${CFLAGS} TCPClient.o ServerAPI.o FileManagementClient.o GroupManagementClient.o -o client
 
-tcp_client.o : tcp_client.c
-	${CC} -c ${CFLAGS} tcp_client.c
+TCPClient.o : TCPClient.c
+	${CC} -c ${CFLAGS} TCPClient.c
 
 ServerAPI.o: ServerAPI.c 
 	${CC} -c ${CFLAGS} ServerAPI.c 
 
-FileTransferClient.o: FileTransferClient.c
-	${CC} -c ${CFLAGS} FileTransferClient.c
+FileManagementClient.o: FileManagementClient.c
+	${CC} -c ${CFLAGS} FileManagementClient.c
 	
-room_client.o: room_client.c
-	${CC} -c ${CFLAGS} room_client.c
+GroupManagementClient.o: GroupManagementClient.c
+	${CC} -c ${CFLAGS} GroupManagementClient.c
 
 clean: 
 	rm -f *.o *~
