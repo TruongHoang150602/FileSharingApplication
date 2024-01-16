@@ -1,5 +1,72 @@
 #include "FileManagementClient.h"
 
+void fileManager(int client_sock)
+{
+	int bytes_sent;
+	char buff[BUFF_SIZE];
+
+	// int status;
+	int choice;
+	int cache;
+
+	// Step 4: Communicate with server
+	// send message
+	do
+	{
+		printf("Simple TCP-based download/upload application\n");
+		printf("---------------------------------------------\n");
+		printf("	1. Upload file.\n");
+		printf("	2. Download file.\n");
+		printf("	3. Create folder.\n");
+		printf("	4. List file.\n");
+		printf("	5. Rename.\n");
+		printf("	6. Copy.\n");
+		printf("	7. Delete.\n");
+		printf("Your choice (1-7, other to quit):\n");
+		scanf("%d", &choice);
+		while ((cache = getchar()) != '\n' && cache != EOF)
+			;
+		// send choice to server
+		memset(buff, 0, sizeof(buff));
+		sprintf(buff, "%d", choice);
+		bytes_sent = send(client_sock, buff, strlen(buff), 0);
+		if (bytes_sent < 0)
+		{
+			perror("\nError: ");
+			return;
+		}
+
+		switch (choice)
+		{
+		case 1:
+			printf("Insert string to send:");
+			memset(buff, '\0', (strlen(buff) + 1));
+			fgets(buff, BUFF_SIZE, stdin);
+			buff[strlen(buff) - 1] = '\0'; // remove trailing newline
+			upload(client_sock, buff);
+			break;
+		case 2:
+			download(client_sock, "Downloaded");
+			break;
+		case 3:
+			createFolder(client_sock);
+			break;
+		case 4:
+			getListFile(client_sock);
+			break;
+		case 5:
+			renameFile(client_sock);
+			break;
+
+		default:
+			break;
+		}
+
+	} while (choice > 0 && choice < 8);
+
+	return;
+}
+
 int upload(int client_sock, char *file_path)
 {
 	struct stat st;
@@ -266,7 +333,7 @@ int download(int client_sock, char *file_path)
 	return 0;
 }
 
-int delete(int client_sock)
+int deleteFile(int client_sock)
 {
 	char recv_data[BUFF_SIZE];
 	int bytes_received;
@@ -333,6 +400,104 @@ int delete(int client_sock)
 
 	// sucessful block
 	return 0;
+}
+
+int renameFile(int client_sock)
+{
+	char recv_data[BUFF_SIZE];
+	int bytes_received;
+	int status;
+
+	bytes_received = recv(client_sock, recv_data, BUFF_SIZE - 1, 0);
+	if (bytes_received < 0)
+	{
+		perror("Error: ");
+		return -1; // error occurred, abort
+	}
+	else
+		recv_data[bytes_received] = '\0';
+
+	if (strcmp(recv_data, MSG_CLOSE) == 0)
+	{ // permissions on server
+		printf("You don't have permission to rename data on the server.\n");
+		return -1;
+	}
+
+	// choose file from server
+	printf("Choose file from server:\n");
+	status = request_file(client_sock);
+	if (status == -1)
+	{
+		printf("Error occurred while requesting file from server.\n");
+		return -1;
+	}
+	else if (status == 1)
+	{
+		printf("Cancel file rename. Close the connection.\n");
+		return 1;
+	}
+
+	// receives old file name
+	printf("Getting file status from server....\n");
+	bytes_received = recv(client_sock, recv_data, BUFF_SIZE - 1, 0);
+	if (bytes_received < 0)
+	{
+		perror("Error: ");
+		return -1; // error occurred, abort
+	}
+	else
+		recv_data[bytes_received] = '\0';
+
+	if (recv_data[0] == '\0')
+	{
+		printf("Receiving data from server end. Exiting.\n");
+		return 1;
+	}
+
+	if (strcmp(recv_data, MSG_CLOSE) == 0)
+	{ // file not found on server
+		printf("You entered the wrong file name or the file has been deleted.\n");
+		return -1;
+	}
+
+	if (strcmp(recv_data, MSG_ERROR) == 0)
+	{ // error occurred on server
+		printf("Error on the server side. File has not been renamed.\n");
+		return -1;
+	}
+
+	// receive new file name
+	bytes_received = recv(client_sock, recv_data, BUFF_SIZE - 1, 0);
+	if (bytes_received < 0)
+	{
+		perror("Error: ");
+		return -1; // error occurred, abort
+	}
+	else
+		recv_data[bytes_received] = '\0';
+
+	printf("File has been renamed to: %s\n", recv_data);
+
+	// successful block
+	return 0;
+}
+
+void getListFile(int client_sock)
+{
+	char recv_data[BUFF_SIZE];
+	int bytes_received;
+
+	// Receive the list of files and folders from the server
+	bytes_received = recv(client_sock, recv_data, BUFF_SIZE - 1, 0);
+	if (bytes_received < 0)
+	{
+		perror("Error receiving list: ");
+		return;
+	}
+	recv_data[bytes_received] = '\0';
+
+	// Display the received list
+	printf("List of files and folders in the server directory:\n%s", recv_data);
 }
 
 int createFolder(int client_sock)
