@@ -23,3 +23,4 @@ void getIntoGroup(int client_sock, char *owner, int *status, char **sessionID);
 void searchGroup(int client_sock);
 void fileTransfer(int client_sock);
 void getListGroup(int client_sock);
+void getGroupMember(int client_sock);

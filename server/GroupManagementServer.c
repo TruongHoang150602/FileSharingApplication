@@ -405,3 +405,61 @@ void getListGroup(Group *root, int conn_sock)
 	}
 	return;
 }
+
+void getGroupMember(Group *root, int conn_sock)
+{
+	char groupName[255];
+	Group *tmp;
+	int bytes_sent, bytes_received;
+
+	while (1)
+	{
+		bzero(groupName, 255);
+		bytes_received = recv(conn_sock, groupName, 256, 0);
+		if (bytes_received <= 0)
+		{
+			fprintf(stderr, "Failed to receive group name from client. Try again.\n");
+			return;
+		}
+		else
+			groupName[bytes_received] = '\0';
+
+		if (strcmp(groupName, MSG_FALSE) == 0)
+		{
+			printf("Cancel");
+			return;
+		}
+
+		if (root->next == NULL)
+		{
+			fprintf(stderr, "Empty database.\n");
+			bytes_sent = send(conn_sock, MSG_ERROR, strlen(MSG_ERROR), 0);
+			if (bytes_sent <= 0)
+			{
+				fprintf(stderr, "Failed to send signal to client. Try again.\n");
+				return;
+			}
+			return;
+		}
+
+		tmp = root->next;
+		while (tmp != NULL)
+		{
+			if (strcmp(tmp->groupName, groupName) == 0)
+			{
+				printf("%s %s\n", tmp->groupName, tmp->owner);
+				// bytes_sent = send(conn_sock, MSG_TRUE);
+				break;
+			}
+			tmp = tmp->next;
+		}
+
+		bytes_sent = send(conn_sock, MSG_FALSE, strlen(MSG_FALSE), 0);
+		if (bytes_sent <= 0)
+		{
+			fprintf(stderr, "Group not found. Try again.\n");
+			return;
+		}
+		break;
+	}
+}

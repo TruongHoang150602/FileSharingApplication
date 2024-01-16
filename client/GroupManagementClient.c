@@ -310,3 +310,52 @@ void getListGroup(int client_sock)
 
 	return;
 }
+void getGroupMember(int client_sock){
+	char groupName[255];
+	char buffer[BUFF_SIZE];
+	int bytes_sent, bytes_received;
+
+	while (1)
+	{
+		printf("Please enter the group name: ");
+		fgets(groupName, 255, stdin);
+		groupName[strlen(groupName) - 1] = '\0';
+
+		if(groupName[0] == '\0'){
+			bytes_sent = send(client_sock, MSG_FALSE, strlen(MSG_FALSE), 0);
+			if(bytes_sent <= 0){
+				fprintf(stderr,"Failed to connect to server. Try again.\n");
+				return;
+			}
+			return;
+		}
+
+		bytes_sent = send(client_sock, groupName, strlen(groupName), 0);
+		if(bytes_sent <= 0){
+			fprintf(stderr, "Failed to connect to server. Try again.\n");
+			return;
+		}
+
+		bzero(buffer, BUFF_SIZE);
+		bytes_received = recv(client_sock, buffer, BUFF_SIZE,0);
+		if(bytes_received <= 0){
+			fprintf(stderr, "Failed to verify username. Try again.\n");
+			return;
+		}else{
+			buffer[bytes_received] = '\0';
+		}
+
+		if(strcmp(buffer, MSG_FALSE) == 0){
+			fprintf(stderr, "Group not found.\n");
+			return;
+		}else if(strcmp(buffer, MSG_ERROR) == 0){
+			fprintf(stderr, "Error occurred. Try again.\n");
+			return;
+		}
+		else{
+			printf("%s", buffer);
+			break;
+		}
+	}
+	
+}

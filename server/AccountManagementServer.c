@@ -536,12 +536,15 @@ void homepage(int sockfd)
 		case 4:
 			getListGroup(root, sockfd);
 			break;
+		case 5:
+			getGroupMember(root, sockfd);
+			break;
 		default: // end process
 			freeGroupList(root);
 			break;
 		}
 
-	} while (choice > 0 && choice < 4);
+	} while (choice > 0 && choice < 6);
 
 	return;
 }

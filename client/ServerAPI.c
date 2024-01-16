@@ -326,7 +326,8 @@ int homepage(int client_sock, char *sessionID)
 		printf("	2. Get into group\n");
 		printf("	3. Search for group\n");
 		printf("	4. Get list group\n");
-			printf("Your choice (1-4) other to quit):\n");
+		printf("	5. Get group members\n");
+		printf("Your choice (1-5) other to quit):\n");
 		scanf("%d", &choice);
 		while ((cache = getchar()) != '\n' && cache != EOF)
 			;
@@ -349,7 +350,7 @@ int homepage(int client_sock, char *sessionID)
 			if (status == 1)
 			{
 				fileTransfer(client_sock);
-				status = 0;	  // after fileTransfer, set status to 0 (log out)
+				status = 0;	   // after fileTransfer, set status to 0 (log out)
 				free(groupID); // free groupID
 			}
 			else
@@ -362,11 +363,14 @@ int homepage(int client_sock, char *sessionID)
 		case 4:
 			getListGroup(client_sock);
 			break;
+		case 5:
+			getGroupMember(client_sock);
+			break;
 		default:
 			return 0;
 		}
 
-	} while (choice > 0 && choice < 4);
+	} while (choice > 0 && choice < 6);
 
 	free(groupID);
 	return 0;
