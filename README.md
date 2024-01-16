@@ -1,7 +1,7 @@
 # Author:
 
 - Hoàng Vân Trường
-- Nguyễn TRọng Quang
+- Nguyễn Trọng Quang
 - Nguyễn Giang Nam
 
 # Subject: Xây dựng ứng dụng chia sẻ file
@@ -20,3 +20,32 @@
 - Chỉ có trưởng nhóm có quyền xóa file, thư mục con, đổi tên file, thư mục
 - Upload file.
 - Download file.
+
+# Installation:
+
+- Cài đặt thư viện [cjSON](https://github.com/DaveGamble/cJSON.git) theo hướng dẫn
+- Clone source code về máy
+
+```bash
+git clone https://github.com/TruongHoang150602/FileSharingApplication.git
+```
+
+- Chạy lệnh sau để chạy server trên cổng 8080
+
+```bash
+cd FileSharingApplication
+cd server
+make clean
+make
+./server 8080
+```
+
+- Chạy lệnh sau để chạy client
+
+```bash
+cd ..
+cd client
+make clean
+make
+./client 172.18.0.1 8080
+```
