@@ -352,7 +352,6 @@ void getGroupMember(int client_sock)
 		{
 			buffer[bytes_received] = '\0';
 		}
-
 		if (strcmp(buffer, MSG_FALSE) == 0)
 		{
 			fprintf(stderr, "Group not found.\n");

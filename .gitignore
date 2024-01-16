@@ -1,6 +1,7 @@
 # Object files
 *.o
-
+server/server
+client/client
 #Folder 
 Downloadable_Files
 Downloaded

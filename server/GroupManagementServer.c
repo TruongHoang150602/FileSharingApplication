@@ -3,23 +3,69 @@
 // Group function
 void readGroupInfo(Group *root, FILE *fp)
 {
-	char groupName[255];
-	char owner[255];
+	// char groupName[255];
+	// char owner[255];
 	Group *tmp = root;
 
 	fseek(fp, 0, SEEK_SET);
 
-	while (!feof(fp))
+	char array[256]; // Mảng để lưu từng dòng
+	while (fgets(array, 256, fp))
 	{
-		fscanf(fp, "%s %s\n", groupName, owner);
+		char *token = strtok(array, " ");
+		char *result[256]; // Mảng để lưu các token
+		int i = 0;
+		while (token != NULL)
+		{
+			result[i] = token;
+			i++;
+			token = strtok(NULL, " ");
+		}
+
+		// In kết quả
 		Group *newGroup = (Group *)malloc(sizeof(Group));
-		newGroup->groupName = strdup(groupName);
-		newGroup->owner = strdup(owner);
+		newGroup->groupName = strdup(result[0]);
+		newGroup->owner = strdup(result[1]);
+		newGroup->members = NULL;
+		for (int j = 2; j < i; j++)
+		{
+			// Tạo một nút mới cho mỗi thành viên
+			Member *newMember = (Member *)malloc(sizeof(Member));
+			newMember->name = strdup(result[j]);
+			newMember->next = NULL;
+
+			// Thêm nút mới vào danh sách thành viên của newGroup
+			if (newGroup->members == NULL)
+			{
+				newGroup->members = newMember;
+			}
+			else
+			{
+				Member *temp = newGroup->members;
+				while (temp->next != NULL)
+				{
+					temp = temp->next;
+				}
+				temp->next = newMember;
+			}
+		}
+
 		newGroup->next = NULL;
 
 		tmp->next = newGroup;
 		tmp = tmp->next;
 	}
+	// while (!feof(fp))
+	// {
+	// fscanf(fp, "%s %s\n", groupName, owner);
+	// Group *newGroup = (Group *)malloc(sizeof(Group));
+	// newGroup->groupName = strdup(groupName);
+	// newGroup->owner = strdup(owner);
+	// newGroup->next = NULL;
+
+	// tmp->next = newGroup;
+	// tmp = tmp->next;
+	// }
 
 	return;
 }
@@ -449,6 +495,12 @@ void getGroupMember(Group *root, int conn_sock)
 			if (strcmp(tmp->groupName, groupName) == 0)
 			{
 				printf("%s %s\n", tmp->groupName, tmp->owner);
+				while (tmp->members != NULL)
+				{
+					printf("%s ", tmp->members->name);
+					tmp->members = tmp->members->next;
+				}
+				printf("\n");
 				// bytes_sent = send(conn_sock, MSG_TRUE);
 				break;
 			}
