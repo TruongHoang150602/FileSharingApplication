@@ -1,6 +1,6 @@
 /*TCP Echo Client*/
-#include <stdio.h>          /* These are the usual header files */
-#include<stdlib.h> 
+#include <stdio.h> /* These are the usual header files */
+#include <stdlib.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -20,10 +20,13 @@
 #define MSG_ACCEPT "Accept"
 #define MSG_ERROR "ERROR"
 
-int upload(int client_sock, char* file_path);
-int download(int client_sock, char* file_path);
-char* extract_file_name(char* file_path);
-void clean_and_restore(FILE** fp);
+void fileManager(int client_sock);
+int upload(int client_sock, char *file_path);
+int download(int client_sock, char *file_path);
+char *extract_file_name(char *file_path);
+void clean_and_restore(FILE **fp);
 int request_file(int client_sock);
-int delete(int client_sock);
 int createFolder(int client_sock);
+void getListFile(int client_sock);
+int renameFile(int client_sock);
+int deleteFile(int client_sock);

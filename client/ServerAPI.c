@@ -349,8 +349,8 @@ int homepage(int client_sock, char *sessionID)
 			getIntoGroup(client_sock, sessionID, &status, &groupID);
 			if (status == 1)
 			{
-				fileTransfer(client_sock);
-				status = 0;	   // after fileTransfer, set status to 0 (log out)
+				groupManager(client_sock);
+				status = 0;	   // after groupManager, set status to 0 (log out)
 				free(groupID); // free groupID
 			}
 			else

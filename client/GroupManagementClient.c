@@ -224,7 +224,7 @@ void searchGroup(int client_sock)
 	return;
 }
 
-void fileTransfer(int client_sock)
+void groupManager(int client_sock)
 {
 	int bytes_sent;
 	char buff[BUFF_SIZE];
@@ -260,17 +260,18 @@ void fileTransfer(int client_sock)
 		switch (choice)
 		{
 		case 1:
-			printf("Insert string to send:");
-			memset(buff, '\0', (strlen(buff) + 1));
-			fgets(buff, BUFF_SIZE, stdin);
-			buff[strlen(buff) - 1] = '\0'; // remove trailing newline
-			upload(client_sock, buff);
+			// printf("Insert string to send:");
+			// memset(buff, '\0', (strlen(buff) + 1));
+			// fgets(buff, BUFF_SIZE, stdin);
+			// buff[strlen(buff) - 1] = '\0'; // remove trailing newline
+			// upload(client_sock, buff);
+			fileManager(client_sock);
 			break;
 		case 2:
 			download(client_sock, "Downloaded");
 			break;
 		case 3:
-			delete (client_sock);
+			deleteFile(client_sock);
 			break;
 		case 4:
 			createFolder(client_sock);
@@ -364,6 +365,66 @@ void getGroupMember(int client_sock)
 		else
 		{
 			printf("%s", buffer);
+			break;
+		}
+	}
+}
+
+void leaveGroup(int client_sock)
+{
+	char groupName[255];
+	char buffer[BUFF_SIZE];
+	int bytes_sent, bytes_received;
+
+	while (1)
+	{
+		printf("Please enter the group name to leave: ");
+		fgets(groupName, 255, stdin);
+		groupName[strlen(groupName) - 1] = '\0';
+
+		if (groupName[0] == '\0')
+		{
+			bytes_sent = send(client_sock, MSG_FALSE, strlen(MSG_FALSE), 0);
+			if (bytes_sent <= 0)
+			{
+				fprintf(stderr, "Failed to connect to server. Try again.\n");
+				return;
+			}
+			return;
+		}
+
+		bytes_sent = send(client_sock, groupName, strlen(groupName), 0);
+		if (bytes_sent <= 0)
+		{
+			fprintf(stderr, "Failed to connect to server. Try again.\n");
+			return;
+		}
+
+		bzero(buffer, BUFF_SIZE);
+		bytes_received = recv(client_sock, buffer, BUFF_SIZE, 0);
+		if (bytes_received <= 0)
+		{
+			fprintf(stderr, "Failed to verify leave request. Try again.\n");
+			return;
+		}
+		else
+		{
+			buffer[bytes_received] = '\0';
+		}
+
+		if (strcmp(buffer, MSG_FALSE) == 0)
+		{
+			fprintf(stderr, "Group not found or you are not a member of the group.\n");
+			return;
+		}
+		else if (strcmp(buffer, MSG_ERROR) == 0)
+		{
+			fprintf(stderr, "Error occurred. Try again.\n");
+			return;
+		}
+		else
+		{
+			printf("You have left the group: %s\n", groupName);
 			break;
 		}
 	}
