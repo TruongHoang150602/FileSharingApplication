@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <cjson/cJSON.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -13,7 +14,7 @@
 #include <netdb.h>
 #include <errno.h>
 
-#include "room_manage_server.h"
+#include "GroupManagementServer.h"
 
 #define BACKLOG 20 /* Number of allowed connections */
 #define BUFF_SIZE 1024

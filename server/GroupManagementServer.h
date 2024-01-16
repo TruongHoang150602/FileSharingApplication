@@ -13,7 +13,7 @@
 #include <netdb.h>
 #include <errno.h>
 
-#include "FileTransferServer.h"
+#include "FileManagementServer.h"
 
 #define MSG_TRUE "1"
 #define MSG_FALSE "0"
@@ -33,20 +33,20 @@ typedef struct Approve
 	struct Approve *next;
 } Approve;
 
-typedef struct roomNode
+typedef struct groupNode
 {
-	char *roomName;
+	char *groupName;
 	char *owner;
 	struct Member *members;
 	struct Approve *approves;
-	struct roomNode *next;
-} Room;
+	struct groupNode *next;
+} Group;
 
 void homepage(int sockfd);
-void readRoomInfo(Room *root, FILE *fp);
-void createRoom(Room *root, int conn_sock, FILE *db);
-void getIntoRoom(Room *root, int conn_sock, FILE *db);
-void searchRoom(Room *root, int conn_sock);
-void freeRoomList(Room *root);
+void readGroupInfo(Group *root, FILE *fp);
+void createGroup(Group *root, int conn_sock, FILE *db);
+void getIntoGroup(Group *root, int conn_sock, FILE *db);
+void searchGroup(Group *root, int conn_sock);
+void freeGroupList(Group *root);
 void fileTransfer(int conn_sock, char *path, int permission);
-void getListGroup(Room *root, int conn_sock);
+void getListGroup(Group *root, int conn_sock);

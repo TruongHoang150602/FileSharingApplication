@@ -1,5 +1,5 @@
 /*TCP Echo Server*/
-#include <stdio.h>          /* These are the usual header files */
+#include <stdio.h> /* These are the usual header files */
 #include <stdlib.h>
 #include <ctype.h>
 #include <dirent.h>
@@ -13,7 +13,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define BACKLOG 20   /* Number of allowed connections */
+#define BACKLOG 20 /* Number of allowed connections */
 #define BUFF_SIZE 1024
 
 #define MSG_DUP_FILE "Error: File is existent."
@@ -25,7 +25,7 @@
 
 int recv_file(int conn_sock, char dir_name[]);
 int send_file(int conn_sock, char dir_name[]);
-char* extract_file_name(char* file_path);
-char* get_file_path(int conn_sock, char* dir_name);
-int delete_file(int conn_sock, char* dir_name, int permission);
-int createSubFolder(int conn_sock, char* dir_name);
+char *extract_file_name(char *file_path);
+char *get_file_path(int conn_sock, char *dir_name);
+int delete_file(int conn_sock, char *dir_name, int permission);
+int createFolder(int conn_sock, char *dir_name);

@@ -1,35 +1,33 @@
 CFLAGS =-Wall
 CC = gcc
 
-server: ServerFuncs.o tcp_server.o FileTransferServer.o room_manage_server.o
-	${CC} ${CFLAGS} -lpthread tcp_server.o ServerFuncs.o FileTransferServer.o room_manage_server.o -o server -lcjson
+server: AccountManagementServer.o TCPServer.o FileManagementServer.o GroupManagementServer.o
+	${CC} ${CFLAGS} -lpthread TCPServer.o AccountManagementServer.o FileManagementServer.o GroupManagementServer.o -o server -lcjson
 
-client: ServerAPI.o  tcp_client.o FileTransferClient.o room_client.o
-	${CC} ${CFLAGS} tcp_client.o ServerAPI.o FileTransferClient.o room_client.o -o client
 
-tcp_server.o : tcp_server.c
-	${CC} -c ${CFLAGS} -lpthread tcp_server.c
+TCPServer.o : TCPServer.c
+	${CC} -c ${CFLAGS} -lpthread TCPServer.c
 
-tcp_client.o : tcp_client.c
-	${CC} -c ${CFLAGS} tcp_client.c
+TCPClient.o : TCPClient.c
+	${CC} -c ${CFLAGS} TCPClient.c
 
-ServerFuncs.o :ServerFuncs.c 
-	${CC} -c ${CFLAGS} -lcjson ServerFuncs.c 
+AccountManagementServer.o :AccountManagementServer.c 
+	${CC} -c ${CFLAGS} -lcjson AccountManagementServer.c 
 
 ServerAPI.o: ServerAPI.c 
 	${CC} -c ${CFLAGS} ServerAPI.c 
 
-FileTransferServer.o : FileTransferServer.c
-	${CC} -c ${CFLAGS} FileTransferServer.c
+FileManagementServer.o : FileManagementServer.c
+	${CC} -c ${CFLAGS} FileManagementServer.c
 
-FileTransferClient.o: FileTransferClient.c
-	${CC} -c ${CFLAGS} FileTransferClient.c
+FileManagement.o: FileManagement.c
+	${CC} -c ${CFLAGS} FileManagement.c
 	
-room_manage_server.o: room_manage_server.c
-	${CC} -c ${CFLAGS} room_manage_server.c
+GroupManagementServer.o: GroupManagementServer.c
+	${CC} -c ${CFLAGS} GroupManagementServer.c
 
-room_client.o: room_client.c
-	${CC} -c ${CFLAGS} room_client.c
+GroupClient.o: GroupClient.c
+	${CC} -c ${CFLAGS} GroupClient.c
 
 clean: 
 	rm -f *.o *~

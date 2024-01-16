@@ -1,4 +1,4 @@
-#include "ServerFuncs.h"
+#include "AccountManagementServer.h"
 #include <pthread.h>
 
 #define BUFF_SIZE 1024

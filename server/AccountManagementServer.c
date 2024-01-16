@@ -1,5 +1,4 @@
-#include "ServerFuncs.h"
-#include <cjson/cJSON.h>
+#include "AccountManagementServer.h"
 
 void readFromFile(Account *root, FILE *file)
 {
@@ -499,15 +498,15 @@ void homepage(int sockfd)
 	// int status;
 	int choice;
 
-	Room *root = (Room *)calloc(1, sizeof(Room));
+	Group *root = (Group *)calloc(1, sizeof(Group));
 
-	FILE *db = fopen("../room.txt", "r+");
+	FILE *db = fopen("../group.txt", "r+");
 	if (db == NULL)
 	{
-		fprintf(stderr, "cannot open room list file\n");
+		fprintf(stderr, "cannot open group list file\n");
 		exit(2);
 	}
-	readRoomInfo(root, db);
+	readGroupInfo(root, db);
 
 	// start conversation
 	do
@@ -526,19 +525,19 @@ void homepage(int sockfd)
 		switch (choice)
 		{
 		case 1:
-			createRoom(root, sockfd, db);
+			createGroup(root, sockfd, db);
 			break;
 		case 2:
-			getIntoRoom(root, sockfd, db);
+			getIntoGroup(root, sockfd, db);
 			break;
 		case 3:
-			searchRoom(root, sockfd);
+			searchGroup(root, sockfd);
 			break;
 		case 4:
 			getListGroup(root, sockfd);
 			break;
 		default: // end process
-			freeRoomList(root);
+			freeGroupList(root);
 			break;
 		}
 

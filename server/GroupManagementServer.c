@@ -1,56 +1,56 @@
-#include "room_manage_server.h"
+#include "GroupManagementServer.h"
 
-// Room function
-void readRoomInfo(Room *root, FILE *fp)
+// Group function
+void readGroupInfo(Group *root, FILE *fp)
 {
-	char roomName[255];
+	char groupName[255];
 	char owner[255];
-	Room *tmp = root;
+	Group *tmp = root;
 
 	fseek(fp, 0, SEEK_SET);
 
 	while (!feof(fp))
 	{
-		fscanf(fp, "%s %s\n", roomName, owner);
-		Room *newRoom = (Room *)malloc(sizeof(Room));
-		newRoom->roomName = strdup(roomName);
-		newRoom->owner = strdup(owner);
-		newRoom->next = NULL;
+		fscanf(fp, "%s %s\n", groupName, owner);
+		Group *newGroup = (Group *)malloc(sizeof(Group));
+		newGroup->groupName = strdup(groupName);
+		newGroup->owner = strdup(owner);
+		newGroup->next = NULL;
 
-		tmp->next = newRoom;
+		tmp->next = newGroup;
 		tmp = tmp->next;
 	}
 
 	return;
 }
 
-void createRoom(Room *root, int conn_sock, FILE *db)
+void createGroup(Group *root, int conn_sock, FILE *db)
 { // done
-	char roomName[255];
+	char groupName[255];
 	char owner[255];
 	int isDuplicate = 0;
-	Room *tmp;
+	Group *tmp;
 
 	int bytes_sent, bytes_received;
 
-	// receive room name from client
+	// receive group name from client
 	while (1)
 	{
 		isDuplicate = 0; // reset isDuplicate
 
-		bzero(roomName, 255);
-		bytes_received = recv(conn_sock, roomName, 256, 0);
+		bzero(groupName, 255);
+		bytes_received = recv(conn_sock, groupName, 256, 0);
 		if (bytes_received <= 0)
 		{
-			fprintf(stderr, "Failed to receive room name from client. Try again.\n");
+			fprintf(stderr, "Failed to receive group name from client. Try again.\n");
 			return;
 		}
 		else
-			roomName[bytes_received] = '\0';
+			groupName[bytes_received] = '\0';
 		// receive null or there's already an user
-		if (strcmp(roomName, MSG_FALSE) == 0)
+		if (strcmp(groupName, MSG_FALSE) == 0)
 		{
-			printf("Cancel create room.\n");
+			printf("Cancel create group.\n");
 			return;
 		}
 
@@ -70,7 +70,7 @@ void createRoom(Room *root, int conn_sock, FILE *db)
 
 		while (tmp != NULL)
 		{
-			if (strcmp(tmp->roomName, roomName) == 0)
+			if (strcmp(tmp->groupName, groupName) == 0)
 			{
 				isDuplicate = 1;
 				break;
@@ -82,7 +82,7 @@ void createRoom(Room *root, int conn_sock, FILE *db)
 
 		if (isDuplicate)
 		{
-			printf("Room existed.\n");
+			printf("Group existed.\n");
 			bytes_sent = send(conn_sock, MSG_DUP, strlen(MSG_DUP), 0);
 			if (bytes_sent <= 0)
 			{
@@ -113,9 +113,9 @@ void createRoom(Room *root, int conn_sock, FILE *db)
 	else
 		owner[bytes_received] = '\0';
 
-	Room *newRoom = (Room *)malloc(sizeof(Room));
+	Group *newGroup = (Group *)malloc(sizeof(Group));
 
-	if (newRoom == NULL)
+	if (newGroup == NULL)
 	{
 		perror("\nError: ");
 		bytes_sent = send(conn_sock, MSG_ERROR, strlen(MSG_ERROR), 0);
@@ -127,18 +127,18 @@ void createRoom(Room *root, int conn_sock, FILE *db)
 	}
 	else
 	{
-		newRoom->roomName = strdup(roomName);
-		newRoom->owner = strdup(owner);
-		newRoom->next = NULL;
-		tmp->next = newRoom;
+		newGroup->groupName = strdup(groupName);
+		newGroup->owner = strdup(owner);
+		newGroup->next = NULL;
+		tmp->next = newGroup;
 
-		printf("%s\n", newRoom->roomName);
-		printf("%s\n", newRoom->owner);
+		printf("%s\n", newGroup->groupName);
+		printf("%s\n", newGroup->owner);
 
 		fseek(db, 0, SEEK_END);
-		int bytes_written = fprintf(db, "%s %s\n", roomName, owner);
+		int bytes_written = fprintf(db, "%s %s\n", groupName, owner);
 		fflush(db);
-		mkdir(newRoom->roomName, 0700);
+		mkdir(newGroup->groupName, 0700);
 		printf("Total bytes written: %d\n", bytes_written);
 
 		bytes_sent = send(conn_sock, MSG_TRUE, strlen(MSG_TRUE), 0);
@@ -152,28 +152,28 @@ void createRoom(Room *root, int conn_sock, FILE *db)
 	return;
 }
 
-void getIntoRoom(Room *root, int conn_sock, FILE *db)
+void getIntoGroup(Group *root, int conn_sock, FILE *db)
 {
-	char roomName[255];
+	char groupName[255];
 	char owner[255];
 	int bytes_sent, bytes_received;
 	// int status;
-	Room *tmp;
+	Group *tmp;
 
-	bzero(roomName, 255);
-	bytes_received = recv(conn_sock, roomName, 256, 0);
+	bzero(groupName, 255);
+	bytes_received = recv(conn_sock, groupName, 256, 0);
 	if (bytes_received <= 0)
 	{
-		fprintf(stderr, "Failed to receive room name from client. Try again.\n");
+		fprintf(stderr, "Failed to receive group name from client. Try again.\n");
 		return;
 	}
 	else
-		roomName[bytes_received] = '\0';
+		groupName[bytes_received] = '\0';
 
 	// receive null or there's already have an user
-	if (strcmp(roomName, MSG_FALSE) == 0)
+	if (strcmp(groupName, MSG_FALSE) == 0)
 	{
-		fprintf(stderr, "Already get into room.\n");
+		fprintf(stderr, "Already get into group.\n");
 		return;
 	}
 
@@ -193,10 +193,10 @@ void getIntoRoom(Room *root, int conn_sock, FILE *db)
 
 	while (tmp != NULL)
 	{
-		if (strcmp(tmp->roomName, roomName) == 0)
+		if (strcmp(tmp->groupName, groupName) == 0)
 		{
 			printf("Found.\n");
-			bytes_sent = send(conn_sock, MSG_TRUE, strlen(MSG_TRUE), 0); // inform that roomName is valid
+			bytes_sent = send(conn_sock, MSG_TRUE, strlen(MSG_TRUE), 0); // inform that groupName is valid
 			if (bytes_sent <= 0)
 			{
 				fprintf(stderr, "Failed to send signal to client. Try again.\n");
@@ -213,7 +213,7 @@ void getIntoRoom(Room *root, int conn_sock, FILE *db)
 			else
 				owner[bytes_received] = '\0';
 
-			bytes_sent = send(conn_sock, roomName, strlen(roomName), 0); // send logged room name
+			bytes_sent = send(conn_sock, groupName, strlen(groupName), 0); // send logged group name
 			if (bytes_sent <= 0)
 			{
 				fprintf(stderr, "Failed to send signal to client. Try again.\n");
@@ -222,21 +222,21 @@ void getIntoRoom(Room *root, int conn_sock, FILE *db)
 			// owner and user are matched.
 			if (strcmp(tmp->owner, owner) == 0)
 			{ // can delete file
-				fprintf(stderr, "Client is owner of this room.\n");
-				fileTransfer(conn_sock, roomName, 1);
+				fprintf(stderr, "Client is owner of this group.\n");
+				fileTransfer(conn_sock, groupName, 1);
 				return;
 			}
 			else
 			{
-				fprintf(stderr, "Client is not owner of this room.\n");
-				fileTransfer(conn_sock, roomName, 0);
+				fprintf(stderr, "Client is not owner of this group.\n");
+				fileTransfer(conn_sock, groupName, 0);
 				return;
 			}
 		}
 		tmp = tmp->next;
 	}
 
-	printf("Cannot find room.\n");
+	printf("Cannot find group.\n");
 	bytes_sent = send(conn_sock, MSG_FALSE, strlen(MSG_FALSE), 0);
 	if (bytes_sent <= 0)
 	{
@@ -245,23 +245,23 @@ void getIntoRoom(Room *root, int conn_sock, FILE *db)
 	return;
 }
 
-void searchRoom(Room *root, int conn_sock)
+void searchGroup(Group *root, int conn_sock)
 {
-	char roomName[255];
-	Room *tmp;
+	char groupName[255];
+	Group *tmp;
 	int bytes_sent, bytes_received;
 
-	bytes_received = recv(conn_sock, roomName, 256, 0);
+	bytes_received = recv(conn_sock, groupName, 256, 0);
 	if (bytes_received <= 0)
 	{
-		fprintf(stderr, "Failed to get room name. Try again.\n");
+		fprintf(stderr, "Failed to get group name. Try again.\n");
 		return;
 	}
 	else
-		roomName[bytes_received] = '\0';
+		groupName[bytes_received] = '\0';
 
 	// receive null
-	if (strcmp(roomName, MSG_FALSE) == 0)
+	if (strcmp(groupName, MSG_FALSE) == 0)
 		return;
 
 	if (root->next == NULL)
@@ -280,9 +280,9 @@ void searchRoom(Room *root, int conn_sock)
 
 	while (tmp != NULL)
 	{
-		if (strcmp(tmp->roomName, roomName) == 0)
+		if (strcmp(tmp->groupName, groupName) == 0)
 		{
-			printf("Room is existed.\n");
+			printf("Group is existed.\n");
 			bytes_sent = send(conn_sock, MSG_TRUE, strlen(MSG_TRUE), 0);
 			if (bytes_sent <= 0)
 			{
@@ -293,7 +293,7 @@ void searchRoom(Room *root, int conn_sock)
 		tmp = tmp->next;
 	}
 
-	printf("Cannot find room.\n");
+	printf("Cannot find group.\n");
 	bytes_sent = send(conn_sock, MSG_ERROR, strlen(MSG_ERROR), 0);
 	if (bytes_sent <= 0)
 	{
@@ -302,16 +302,16 @@ void searchRoom(Room *root, int conn_sock)
 	}
 }
 
-void freeRoomList(Room *root)
+void freeGroupList(Group *root)
 {
-	Room *tmp = root->next;
-	Room *guard = tmp;
+	Group *tmp = root->next;
+	Group *guard = tmp;
 	if (tmp == NULL)
 		return; // empty linked list
 	while (tmp != NULL)
 	{
 		guard = tmp->next;
-		free(tmp->roomName);
+		free(tmp->groupName);
 		free(tmp->owner);
 		free(tmp);
 		tmp = guard;
@@ -352,7 +352,7 @@ void fileTransfer(int conn_sock, char *path, int permission)
 			delete_file(conn_sock, path, permission);
 			break;
 		case 4:
-			createSubFolder(conn_sock, path);
+			createFolder(conn_sock, path);
 			break;
 		default:
 			break;
@@ -363,10 +363,10 @@ void fileTransfer(int conn_sock, char *path, int permission)
 	return;
 }
 
-void getListGroup(Room *root, int conn_sock)
+void getListGroup(Group *root, int conn_sock)
 {
 	char list_group[1024];
-	Room *tmp;
+	Group *tmp;
 	int bytes_sent, bytes_received;
 	char data_received[12];
 	bytes_received = recv(conn_sock, data_received, sizeof(data_received) - 1, 0);
@@ -392,7 +392,7 @@ void getListGroup(Room *root, int conn_sock)
 
 	while (tmp != NULL)
 	{
-		strcat(list_group, tmp->roomName);
+		strcat(list_group, tmp->groupName);
 		strcat(list_group, "\n");
 		printf("Owner: %s \n", tmp->owner);
 		tmp = tmp->next;
