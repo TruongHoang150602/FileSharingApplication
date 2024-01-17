@@ -325,8 +325,7 @@ int homepage(int client_sock, char *sessionID)
 		printf("	1. Create group\n");
 		printf("	2. Get into group\n");
 		printf("	3. Search for group\n");
-		printf("	4. Get list group\n");
-		printf("	5. Get group members\n");
+		printf("	4. List group\n");
 		printf("Your choice (1-5) other to quit):\n");
 		scanf("%d", &choice);
 		while ((cache = getchar()) != '\n' && cache != EOF)

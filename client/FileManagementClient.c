@@ -57,7 +57,9 @@ void fileManager(int client_sock)
 		case 5:
 			renameFile(client_sock);
 			break;
-
+		case 7:
+			deleteFile(client_sock);
+			break;
 		default:
 			break;
 		}
@@ -336,39 +338,24 @@ int download(int client_sock, char *file_path)
 int deleteFile(int client_sock)
 {
 	char recv_data[BUFF_SIZE];
-	int bytes_received;
+	int bytes_sent, bytes_received;
 	int status;
-
-	bytes_received = recv(client_sock, recv_data, BUFF_SIZE - 1, 0);
-	if (bytes_received < 0)
-	{
-		perror("Error: ");
-		return -1; // meet error, aborted
-	}
-	else
-		recv_data[bytes_received] = '\0'; // check with server send format
-
-	if (strcmp(recv_data, MSG_CLOSE) == 0)
-	{ // permissions on server
-		printf("You don't have permission to delete data from server.\n");
-		return -1;
-	}
+	char file_name[255];
 
 	// choose file from server
-	printf("Choose file from server:\n");
+	printf("Choose file/folder from server:\n");
 	status = request_file(client_sock);
 	if (status == -1)
 	{
-		printf("Error occurred while requesting file from server.\n");
+		printf("Error occurred while getting file/folder status from server.\n");
 		return -1;
 	}
 	else if (status == 1)
 	{
-		printf("Cancel file delete. Close the connection.\n");
+		printf("Cancel delete. Close the connection.\n");
 		return 1;
 	}
-	// receives file name
-	printf("Getting file status from server....\n");
+
 	bytes_received = recv(client_sock, recv_data, BUFF_SIZE - 1, 0);
 	if (bytes_received < 0)
 	{
@@ -376,109 +363,71 @@ int deleteFile(int client_sock)
 		return -1; // meet error, aborted
 	}
 	else
-		recv_data[bytes_received] = '\0'; // check with server send format
-
-	if (recv_data[0] == '\0')
-	{
-		printf("Receiving data from server end. Exiting.\n");
-		return 1;
-	}
-
-	if (strcmp(recv_data, MSG_CLOSE) == 0)
-	{ // file not found on server
-		printf("You enter wrong file name or file has been deleted.\n");
-		return -1;
-	}
+		recv_data[bytes_received] = '\0';
 
 	if (strcmp(recv_data, MSG_ERROR) == 0)
-	{ // file has not been deleted on server
-		printf("File has not been deleted on server.\n");
+	{ // file/folder has not been deleted on server
+		printf("File/Folder has not been deleted on the server.\n");
 		return -1;
 	}
 
-	printf("File: %s has been deleted.\n", recv_data);
+	printf("File/Folder: %s has been deleted.\n", recv_data);
 
-	// sucessful block
+	// successful block
 	return 0;
 }
 
 int renameFile(int client_sock)
 {
 	char recv_data[BUFF_SIZE];
-	int bytes_received;
+	int bytes_sent, bytes_received;
 	int status;
+	char new_name[255];
 
-	bytes_received = recv(client_sock, recv_data, BUFF_SIZE - 1, 0);
-	if (bytes_received < 0)
-	{
-		perror("Error: ");
-		return -1; // error occurred, abort
-	}
-	else
-		recv_data[bytes_received] = '\0';
-
-	if (strcmp(recv_data, MSG_CLOSE) == 0)
-	{ // permissions on server
-		printf("You don't have permission to rename data on the server.\n");
-		return -1;
-	}
-
-	// choose file from server
+	// Choose file from server
 	printf("Choose file from server:\n");
 	status = request_file(client_sock);
 	if (status == -1)
 	{
-		printf("Error occurred while requesting file from server.\n");
+		printf("Error occurred while getting file status from server.\n");
 		return -1;
 	}
 	else if (status == 1)
 	{
-		printf("Cancel file rename. Close the connection.\n");
+		printf("Cancel rename. Close the connection.\n");
 		return 1;
 	}
 
-	// receives old file name
-	printf("Getting file status from server....\n");
+	printf("Please enter the new name: ");
+	fgets(new_name, 255, stdin);
+	new_name[strlen(new_name) - 1] = '\0';
+
+	bytes_sent = send(client_sock, new_name, strlen(new_name), 0);
+	if (bytes_sent < 0)
+	{
+		perror("\nError: ");
+		return -1;
+	}
+
 	bytes_received = recv(client_sock, recv_data, BUFF_SIZE - 1, 0);
 	if (bytes_received < 0)
 	{
 		perror("Error: ");
-		return -1; // error occurred, abort
+		return -1; // meet error, aborted
 	}
 	else
 		recv_data[bytes_received] = '\0';
-
-	if (recv_data[0] == '\0')
-	{
-		printf("Receiving data from server end. Exiting.\n");
-		return 1;
-	}
-
-	if (strcmp(recv_data, MSG_CLOSE) == 0)
-	{ // file not found on server
-		printf("You entered the wrong file name or the file has been deleted.\n");
-		return -1;
-	}
 
 	if (strcmp(recv_data, MSG_ERROR) == 0)
-	{ // error occurred on server
-		printf("Error on the server side. File has not been renamed.\n");
+	{
+		// File has not been renamed on the server
+		printf("File has not been renamed on the server.\n");
 		return -1;
 	}
 
-	// receive new file name
-	bytes_received = recv(client_sock, recv_data, BUFF_SIZE - 1, 0);
-	if (bytes_received < 0)
-	{
-		perror("Error: ");
-		return -1; // error occurred, abort
-	}
-	else
-		recv_data[bytes_received] = '\0';
+	printf("File: %s has been renamed.\n", recv_data);
 
-	printf("File has been renamed to: %s\n", recv_data);
-
-	// successful block
+	// Successful block
 	return 0;
 }
 

@@ -379,13 +379,10 @@ void groupManager(int conn_sock, char *path, int permission)
 			fileManager(conn_sock, path, permission);
 			break;
 		case 2:
-			send_file(conn_sock, path); // loop send files to client
 			break;
 		case 3:
-			deleteFile(conn_sock, path, permission);
 			break;
 		case 4:
-			createFolder(conn_sock, path);
 			break;
 		default:
 			break;

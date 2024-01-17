@@ -237,12 +237,13 @@ void groupManager(int client_sock)
 	// send message
 	do
 	{
-		printf("Simple TCP-based download/upload application\n");
+		printf("Group manager\n");
 		printf("---------------------------------------------\n");
-		printf("	1. Upload file.\n");
-		printf("	2. Download file.\n");
-		printf("	3. Delete.\n");
-		printf("	4. Create sub folder.\n");
+		printf("	1. File Manager.\n");
+		printf("	2. Member.\n");
+		printf("	3. Approve.\n");
+		printf("	4. Delete member.\n");
+		printf("	5. Leave.\n");
 		printf("Your choice (1-4, other to quit):\n");
 		scanf("%d", &choice);
 		while ((cache = getchar()) != '\n' && cache != EOF)
@@ -260,11 +261,6 @@ void groupManager(int client_sock)
 		switch (choice)
 		{
 		case 1:
-			// printf("Insert string to send:");
-			// memset(buff, '\0', (strlen(buff) + 1));
-			// fgets(buff, BUFF_SIZE, stdin);
-			// buff[strlen(buff) - 1] = '\0'; // remove trailing newline
-			// upload(client_sock, buff);
 			fileManager(client_sock);
 			break;
 		case 2:
