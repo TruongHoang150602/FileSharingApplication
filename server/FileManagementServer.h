@@ -22,6 +22,7 @@
 #define MSG_RECV "Received."
 #define MSG_ACCEPT "Accept"
 #define MSG_ERROR "ERROR"
+#define MSG_CANCEL "Cancel"
 
 void fileManager(int conn_sock, char *path, int permission);
 int recv_file(int conn_sock, char dir_name[]);

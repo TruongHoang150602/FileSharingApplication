@@ -26,24 +26,36 @@ void fileManager(int conn_sock, char *path, int permission)
 		switch (choice)
 		{
 		case 1:
+			printf("recv file\n");
 			recv_file(conn_sock, path); // loop receives files from client
+			printf("recv file end\n");
 			break;
 		case 2:
+			printf("send file\n");
 			send_file(conn_sock, path); // loop send files to client
+			printf("send file end\n");
 			break;
 		case 3:
+			printf("create folder\n");
 			createFolder(conn_sock, path);
+			printf("create folder end\n");
 			break;
 		case 4:
+			printf("get list file\n");
 			getListFile(conn_sock, path);
+			printf("get list file end\n");
 			break;
 		case 5:
+			printf("rename file\n");
 			renameFile(conn_sock, path, permission);
+			printf("rename file end\n");
 			break;
 		case 6:
 			break;
 		case 7:
+			printf("delete file");
 			deleteFile(conn_sock, path, permission);
+			printf("delete file end\n");
 			break;
 		default:
 			break;
@@ -189,6 +201,7 @@ int recv_file(int conn_sock, char *dir_name)
 
 int send_file(int conn_sock, char *dir_name)
 { // char dir_name[] = "Downloadable files";
+	printf("send file");
 	struct stat st;
 	char buff[BUFF_SIZE];
 	char sendbuff[BUFF_SIZE];
@@ -328,13 +341,12 @@ int send_file(int conn_sock, char *dir_name)
 	return 0;
 }
 
-int deleteFile(int conn_sock, char *dir_name, int permission)
-{ // char dir_name[] = "Downloadable files";
+int deleteFile(int conn_sock, char *file_name, int permission)
+{
 	struct stat st;
+	char send_data[BUFF_SIZE];
 	int bytes_sent;
 	char *file_path = NULL;
-	char *file_name = NULL;
-	int ret;
 
 	if (permission != 1)
 	{
@@ -346,62 +358,60 @@ int deleteFile(int conn_sock, char *dir_name, int permission)
 		return -1;
 	}
 
-	bytes_sent = send(conn_sock, MSG_ACCEPT, strlen(MSG_ACCEPT), 0); // client have permission to delete file
-	if (bytes_sent < 0)
+	file_path = get_file_path(conn_sock, file_name); // Get the file path
+	if (file_path == NULL)
 	{
-		perror("\nError: ");
+		// Error occurred
+		printf("No file path specified.\n");
 		return -1;
 	}
 
-	file_path = get_file_path(conn_sock, dir_name); // need to get file path function here
-	if (file_path == NULL)
-	{
-		// error occurred
-		printf("No file path specified.\n");
-		return -1; // change it for future
-	}
-	// if error occurred, file permissions deny
+	// Check if the file or folder exists
 	if (stat(file_path, &st) == -1)
-	{ // Not exists
-		fprintf(stderr, "Error: File/Folder not found..\n");
+	{
+		fprintf(stderr, "Error: File or folder not found.\n");
 		bytes_sent = send(conn_sock, MSG_CLOSE, strlen(MSG_CLOSE), 0);
 		if (bytes_sent < 0)
 		{
 			perror("\nError: ");
-			return -1;
 		}
+
+		free(file_path);
 		return -1;
 	}
 
-	file_name = extract_file_name(file_path);
-	if (file_name == NULL)
+	// Delete the file or folder
+	if (S_ISDIR(st.st_mode))
 	{
-		printf("Error:  something went wrong while extracting file/folder name.\n");
-		return -1;
-	}
-
-	ret = remove(file_path);
-
-	if (ret != 0)
-	{
-		printf("Error: unable to delete the file/folder");
-		bytes_sent = send(conn_sock, MSG_ERROR, strlen(MSG_ERROR), 0);
-		if (bytes_sent < 0)
+		// It's a directory, use rmdir to remove it
+		if (rmdir(file_path) != 0)
 		{
 			perror("\nError: ");
+			free(file_path);
+			return -1;
+		}
+	}
+	else
+	{
+		// It's a file, use unlink to remove it
+		if (unlink(file_path) != 0)
+		{
+			perror("\nError: ");
+			free(file_path);
 			return -1;
 		}
 	}
 
-	bytes_sent = send(conn_sock, file_name, strlen(file_name), 0);
+	// Send success message
+	snprintf(send_data, BUFF_SIZE, "Deleted: %s", file_name);
+	bytes_sent = send(conn_sock, send_data, strlen(send_data), 0);
 	if (bytes_sent < 0)
 	{
 		perror("\nError: ");
+		free(file_path);
 		return -1;
 	}
 
-	// clean
-	free(file_name);
 	free(file_path);
 	return 0;
 }
@@ -710,11 +720,9 @@ void getListFile(int conn_sock, char *dir_name)
 int renameFile(int conn_sock, char *dir_name, int permission)
 {
 	struct stat st;
-	int bytes_sent;
-	char *old_path = NULL;
-	char *new_path = NULL;
-	char *old_name = NULL;
-	char *new_name = NULL;
+	char recv_data[BUFF_SIZE];
+	int bytes_sent, bytes_received;
+	char *file_path = NULL;
 
 	if (permission != 1)
 	{
@@ -726,75 +734,65 @@ int renameFile(int conn_sock, char *dir_name, int permission)
 		return -1;
 	}
 
-	old_path = get_file_path(conn_sock, dir_name); // Need to implement get_file_path function
-	if (old_path == NULL)
+	file_path = get_file_path(conn_sock, dir_name); // get file path
+	if (file_path == NULL)
 	{
+		// error occurred
 		printf("No file path specified.\n");
-		return -1;
+		return -1; // change it for future
 	}
 
-	if (stat(old_path, &st) == -1)
+	bytes_received = recv(conn_sock, recv_data, BUFF_SIZE - 1, 0); // receive new file name
+	if (bytes_received < 0)
 	{
-		fprintf(stderr, "Error: File/Folder not found.\n");
+		perror("Error: ");
+		return -1; // meet error, aborted
+	}
+	else
+		recv_data[bytes_received] = '\0';
 
-		int bytes_sent = send(conn_sock, MSG_CLOSE, strlen(MSG_CLOSE), 0);
+	// if error occurred, file permissions deny
+	if (stat(file_path, &st) == -1)
+	{ // File not exists
+		fprintf(stderr, "Error: File not found.\n");
+		bytes_sent = send(conn_sock, MSG_CLOSE, strlen(MSG_CLOSE), 0);
 		if (bytes_sent < 0)
 		{
-			perror("\nError sending message: ");
+			perror("\nError: ");
 		}
-
 		return -1;
 	}
 
-	old_name = extract_file_name(old_path);
-	if (old_name == NULL)
-	{
-		printf("Error: Something went wrong while extracting file/folder name.\n");
-		return -1;
-	}
+	char *new_path = (char *)malloc(sizeof(char) * 512);
+	getcwd(new_path, 512);
 
-	// Get the new name from the client
-	char new_name_buffer[BUFF_SIZE];
-	bytes_sent = recv(conn_sock, new_name_buffer, BUFF_SIZE - 1, 0);
-	if (bytes_sent < 0)
+	if (rename(file_path, recv_data) != 0)
 	{
-		perror("Error receiving new name: ");
-		return -1;
-	}
-	new_name_buffer[bytes_sent] = '\0';
-	new_name = strdup(new_name_buffer);
-
-	// Construct the new path by replacing the old name with the new name
-	char new_path_buffer[BUFF_SIZE];
-	snprintf(new_path_buffer, sizeof(new_path_buffer), "%s/%s", dir_name, new_name);
-	new_path = strdup(new_path_buffer);
-
-	// Rename the file/folder
-	if (rename(old_path, new_path) != 0)
-	{
-		perror("Error renaming file/folder");
-		int bytes_sent = send(conn_sock, MSG_ERROR, strlen(MSG_ERROR), 0);
+		// Error occurred while renaming the file
+		perror("Error: ");
+		bytes_sent = send(conn_sock, MSG_ERROR, strlen(MSG_ERROR), 0);
 		if (bytes_sent < 0)
 		{
-			perror("\nError sending message: ");
+			perror("\nError: ");
 		}
 
+		free(new_path);
+		free(file_path);
+
 		return -1;
 	}
 
-	// Send the new name to the client
-	bytes_sent = send(conn_sock, new_name, strlen(new_name), 0);
+	// Send the new file name to the client
+	bytes_sent = send(conn_sock, recv_data, strlen(recv_data), 0);
 	if (bytes_sent < 0)
 	{
-		perror("Error sending new name: ");
+		perror("\nError: ");
+		free(new_path);
+		free(file_path);
 		return -1;
 	}
 
-	// Clean up
-	free(old_name);
-	free(old_path);
-	free(new_name);
 	free(new_path);
-
+	free(file_path);
 	return 0;
 }
