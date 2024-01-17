@@ -9,11 +9,11 @@ void readGroupInfo(Group *root, FILE *fp)
 
 	fseek(fp, 0, SEEK_SET);
 
-	char array[256]; // Mảng để lưu từng dòng
+	char array[256];
 	while (fgets(array, 256, fp))
 	{
 		char *token = strtok(array, " ");
-		char *result[256]; // Mảng để lưu các token
+		char *result[256];
 		int i = 0;
 		while (token != NULL)
 		{
@@ -22,19 +22,16 @@ void readGroupInfo(Group *root, FILE *fp)
 			token = strtok(NULL, " ");
 		}
 
-		// In kết quả
 		Group *newGroup = (Group *)malloc(sizeof(Group));
 		newGroup->groupName = strdup(result[0]);
 		newGroup->owner = strdup(result[1]);
 		newGroup->members = NULL;
 		for (int j = 2; j < i; j++)
 		{
-			// Tạo một nút mới cho mỗi thành viên
 			Member *newMember = (Member *)malloc(sizeof(Member));
 			newMember->name = strdup(result[j]);
 			newMember->next = NULL;
 
-			// Thêm nút mới vào danh sách thành viên của newGroup
 			if (newGroup->members == NULL)
 			{
 				newGroup->members = newMember;
@@ -55,17 +52,6 @@ void readGroupInfo(Group *root, FILE *fp)
 		tmp->next = newGroup;
 		tmp = tmp->next;
 	}
-	// while (!feof(fp))
-	// {
-	// fscanf(fp, "%s %s\n", groupName, owner);
-	// Group *newGroup = (Group *)malloc(sizeof(Group));
-	// newGroup->groupName = strdup(groupName);
-	// newGroup->owner = strdup(owner);
-	// newGroup->next = NULL;
-
-	// tmp->next = newGroup;
-	// tmp = tmp->next;
-	// }
 
 	return;
 }
@@ -441,7 +427,6 @@ void getListGroup(Group *root, int conn_sock)
 	{
 		strcat(list_group, tmp->groupName);
 		strcat(list_group, "\n");
-		printf("Owner: %s \n", tmp->owner);
 		tmp = tmp->next;
 	}
 	printf("%s", list_group);
@@ -456,6 +441,7 @@ void getListGroup(Group *root, int conn_sock)
 void getGroupMember(Group *root, int conn_sock)
 {
 	char groupName[255];
+	char list_member[1024] = "Group name: ";
 	Group *tmp;
 	int bytes_sent, bytes_received;
 
@@ -495,19 +481,24 @@ void getGroupMember(Group *root, int conn_sock)
 			if (strcmp(tmp->groupName, groupName) == 0)
 			{
 				printf("%s %s\n", tmp->groupName, tmp->owner);
+				strcat(list_member, tmp->groupName);
+				strcat(list_member, "\n");
+				strcat(list_member, "Owner: ");
+				strcat(list_member, tmp->owner);
+				strcat(list_member, "\n");
+				strcat(list_member, "Member: ");
 				while (tmp->members != NULL)
 				{
-					printf("%s ", tmp->members->name);
+					strcat(list_member, tmp->members->name);
+					strcat(list_member, ", ");
 					tmp->members = tmp->members->next;
 				}
-				printf("\n");
-				// bytes_sent = send(conn_sock, MSG_TRUE);
 				break;
 			}
 			tmp = tmp->next;
 		}
 
-		bytes_sent = send(conn_sock, MSG_FALSE, strlen(MSG_FALSE), 0);
+		bytes_sent = send(conn_sock, list_member, strlen(list_member), 0);
 		if (bytes_sent <= 0)
 		{
 			fprintf(stderr, "Group not found. Try again.\n");
