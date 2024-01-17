@@ -1,6 +1,6 @@
-Quang_Folder quang truong nam
-Truong_Folder quang a a
-Nam_Folder quang b b
-Test_Folder quang c c c c c c
-TestGroup quang a
-ABC Truong b b b b b b b
+Quang_Folder Quang Truong Nam
+TestGroup Quang
+Truong_Folder Truong Quang
+Nam_Folder Nam Test
+Test_Folder Test
+ABC Truong
