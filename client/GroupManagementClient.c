@@ -403,3 +403,155 @@ void leaveGroup(int client_sock)
 		}
 	}
 }
+
+void invitationProcessing(int client_sock, char *sessionID)
+{
+	FILE *file = fopen("../account.json", "r");
+	if (!file)
+	{
+		fprintf(stderr, "Không thể mở tệp JSON\n");
+		return;
+	}
+
+	fseek(file, 0, SEEK_END);
+	long fileSize = ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	char *jsonBuffer = (char *)malloc(fileSize + 1);
+	fread(jsonBuffer, 1, fileSize, file);
+	fclose(file);
+
+	// Bắt đầu phân tích cú pháp JSON
+	cJSON *json = cJSON_Parse(jsonBuffer);
+	free(jsonBuffer);
+
+	if (!json)
+	{
+		fprintf(stderr, "Lỗi phân tích cú pháp JSON\n");
+		return;
+	}
+
+	// Lặp qua các đối tượng trong mảng JSON
+	cJSON *user = NULL;
+	char *result;
+	cJSON_ArrayForEach(user, json)
+	{
+		cJSON *username = cJSON_GetObjectItemCaseSensitive(user, "username");
+		if (cJSON_IsString(username))
+		{
+			if (strcmp(username->valuestring, sessionID) == 0)
+			{
+				cJSON *invitation = cJSON_GetObjectItemCaseSensitive(user, "invitation");
+				if (cJSON_IsArray(invitation))
+				{
+					if (cJSON_GetArraySize(invitation) == 0)
+					{
+						printf("No invites yet!");
+					}
+					else
+					{
+						FILE *file = fopen("../group.txt", "r");
+						if (!file)
+						{
+							fprintf(stderr, "Không thể mở tệp\n");
+							return;
+						}
+
+						// Tìm kích thước của tệp
+						fseek(file, 0, SEEK_END);
+						long fileSize = ftell(file);
+						fseek(file, 0, SEEK_SET);
+
+						// Đọc nội dung tệp vào bộ đệm
+						char *fileContent = (char *)malloc(fileSize + 1);
+						fread(fileContent, 1, fileSize, file);
+						fileContent[fileSize] = '\0'; // Thêm ký tự null vào cuối bộ đệm
+						fclose(file);
+						printf("%s", fileContent);
+						// Tìm dòng đầu tiên
+						char *line = strtok(fileContent, "\n");
+						// Mảng để lưu trữ dữ liệu đã sửa
+						char **modifiedLines = (char **)malloc(sizeof(char *) * 1000);
+						int lineCount = 0;
+
+						cJSON *group = NULL;
+						char *copy = (char *)malloc(256);
+						char *nameGr = (char *)malloc(256);
+						char *modifiedLine = (char *)malloc(256);
+						cJSON_ArrayForEach(group, invitation)
+						{
+							while (line != NULL)
+							{
+								// Thêm dữ liệu mới vào cuối mỗi dòng
+								line[strlen(line) - 1] = '\0';
+								copy = (char *)malloc(256);
+								strcpy(copy, line);
+								printf("%s\n", copy);
+								nameGr = strtok(copy, " ");
+								printf("nameGr: %s\n", nameGr);
+								printf("Group: %s\n", group->valuestring);
+								free(copy);
+								if (strcmp(nameGr, group->valuestring) == 0)
+								{
+									printf("IF");
+									sprintf(modifiedLine, sessionID, line);
+									modifiedLines[lineCount++] = modifiedLine;
+									printf("Added: %s\n", cJSON_IsString(group) ? group->valuestring : "N/A");
+									break;
+								}
+								else
+								{
+									printf("ELSE");
+									sprintf(modifiedLine, "%s\n", line);
+									modifiedLines[lineCount++] = modifiedLine;
+								}
+								free(nameGr);
+								free(modifiedLine);
+								line = strtok(NULL, "\n");
+							}
+							line = strtok(fileContent, "\n");
+						}
+						// Mở tệp để ghi lại
+						FILE *file1 = fopen("../group.txt", "w");
+						if (file1 == NULL)
+						{
+							fprintf(stderr, "Không thể mở tệp\n");
+							return;
+						}
+						if (lineCount > 0 && modifiedLines != NULL)
+						{
+							for (int i = 0; i < lineCount; ++i)
+							{
+								// In ra nội dung để kiểm tra trước khi ghi vào tệp
+								printf("Ghi: %s\n", modifiedLines[i]);
+								fputs(modifiedLines[i], file1);
+								fputc('\n', file1); // Thêm ký tự xuống dòng
+								free(modifiedLines[i]);
+							}
+						}
+						else
+						{
+							printf("Mang modifiedLines rong hoac lineCount <= 0\n");
+						}
+
+						fclose(file1); // Đóng tệp sau khi ghi dữ liệu
+
+						// Giải phóng bộ nhớ
+						free(fileContent);
+						free(modifiedLines);
+
+						// Đóng tệp
+						fclose(file1);
+					}
+				}
+				printf("\n");
+				break;
+			}
+		}
+	}
+
+	// Giải phóng bộ nhớ
+	cJSON_Delete(json);
+
+	return;
+}

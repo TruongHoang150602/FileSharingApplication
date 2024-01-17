@@ -326,6 +326,7 @@ int homepage(int client_sock, char *sessionID)
 		printf("	2. Get into group\n");
 		printf("	3. Search for group\n");
 		printf("	4. List group\n");
+		printf("	5. Invitation\n");
 		printf("Your choice (1-5) other to quit):\n");
 		scanf("%d", &choice);
 		while ((cache = getchar()) != '\n' && cache != EOF)
@@ -363,7 +364,7 @@ int homepage(int client_sock, char *sessionID)
 			getListGroup(client_sock);
 			break;
 		case 5:
-			getGroupMember(client_sock);
+			invitationProcessing(client_sock, sessionID);
 			break;
 		default:
 			return 0;

@@ -1,31 +1,26 @@
-[{
-		"username":	"Quang",
-		"password":	"Quang",
-		"status":	1,
-		"invitation":	["Nam_Folder", "Quang_Folder", "Truong_Folder"]
-	}, {
-		"username":	"Nam",
-		"password":	"Nam",
-		"status":	1,
-		"invitation":	["Nam_Folder", "Quang_Folder", "Truong_Folder"]
-	}, {
-		"username":	"Truong",
-		"password":	"Truong",
-		"status":	1,
-		"invitation":	["Nam_Folder", "Quang_Folder", "Truong_Folder"]
-	}, {
-		"username":	"Test",
-		"password":	"Test",
-		"status":	1,
-		"invitation":	["Nam_Folder", "Quang_Folder", "Truong_Folder"]
-	}, {
-		"username":	"testt",
-		"password":	"testt",
-		"status":	1,
-		"invitation":	[]
-	}, {
-		"username":	"abc",
-		"password":	"abc",
-		"status":	1,
-		"invitation":	[]
-	}]
+[
+  {
+    "username": "Quang",
+    "password": "Quang",
+    "status": 1,
+    "invitation": ["Nam_Folder", "Test_Folder"]
+  },
+  {
+    "username": "Nam",
+    "password": "Nam",
+    "status": 1,
+    "invitation": ["Quang_Folder"]
+  },
+  {
+    "username": "Truong",
+    "password": "Truong",
+    "status": 1,
+    "invitation": ["Nam_Folder"]
+  },
+  {
+    "username": "Test",
+    "password": "Test",
+    "status": 1,
+    "invitation": []
+  }
+]

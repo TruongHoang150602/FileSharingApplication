@@ -24,4 +24,5 @@ void searchGroup(int client_sock);
 void groupManager(int client_sock);
 void getListGroup(int client_sock);
 void getGroupMember(int client_sock);
+void invitationProcessing(int client_sock, char *sessionID);
 void leaveGroup(int client_sock);
