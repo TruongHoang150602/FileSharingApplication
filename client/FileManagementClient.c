@@ -338,9 +338,9 @@ int download(int client_sock, char *file_path)
 int deleteFile(int client_sock)
 {
 	char recv_data[BUFF_SIZE];
-	int bytes_sent, bytes_received;
+	int bytes_received;
 	int status;
-	char file_name[255];
+	// char file_name[255];
 
 	// choose file from server
 	printf("Choose file/folder from server:\n");
