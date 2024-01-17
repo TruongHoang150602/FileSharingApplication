@@ -224,7 +224,7 @@ void searchGroup(int client_sock)
 	return;
 }
 
-void groupManager(int client_sock)
+void groupManager(int client_sock, char *username)
 {
 	int bytes_sent;
 	char buff[BUFF_SIZE];
@@ -270,10 +270,11 @@ void groupManager(int client_sock)
 			printf("Dang phat trien. Moi tham gia");
 			break;
 		case 4:
-			printf("Dang phat trien. Xoa thanh vien");
+			deleteMember(client_sock, username);
 			break;
 		case 5:
-			leaveGroup(client_sock);
+			leaveGroup(client_sock, username);
+			return;
 			break;
 		default:
 			break;
@@ -344,62 +345,66 @@ void getGroupMember(int client_sock)
 	}
 }
 
-void leaveGroup(int client_sock)
+void leaveGroup(int client_sock, char *owner)
 {
-	char groupName[255];
 	char buffer[BUFF_SIZE];
 	int bytes_sent, bytes_received;
-
-	while (1)
+	bytes_sent = send(client_sock, owner, strlen(owner), 0);
+	if (bytes_sent <= 0)
 	{
-		printf("Please enter the group name to leave: ");
-		fgets(groupName, 255, stdin);
-		groupName[strlen(groupName) - 1] = '\0';
+		fprintf(stderr, "Failed to connect to server. Try again.\n");
+		return;
+	}
+}
 
-		if (groupName[0] == '\0')
-		{
-			bytes_sent = send(client_sock, MSG_FALSE, strlen(MSG_FALSE), 0);
-			if (bytes_sent <= 0)
-			{
-				fprintf(stderr, "Failed to connect to server. Try again.\n");
-				return;
-			}
-			return;
-		}
+void deleteMember(int client_sock, char *owner)
+{
+	char buffer[BUFF_SIZE];
+	int bytes_sent, bytes_received, permission;
 
-		bytes_sent = send(client_sock, groupName, strlen(groupName), 0);
-		if (bytes_sent <= 0)
-		{
-			fprintf(stderr, "Failed to connect to server. Try again.\n");
-			return;
-		}
+	// Gửi thông tin về owner cho server
+	bytes_sent = send(client_sock, owner, strlen(owner), 0);
+	if (bytes_sent <= 0)
+	{
+		fprintf(stderr, "Failed to send owner information to server. Try again.\n");
+		return;
+	}
+
+	// Nhận permission từ server
+	bzero(buffer, BUFF_SIZE);
+	bytes_received = recv(client_sock, buffer, BUFF_SIZE - 1, 0);
+	if (bytes_received <= 0)
+	{
+		fprintf(stderr, "Failed to receive permission from server. Try again.\n");
+		return;
+	}
+	else
+	{
+		buffer[bytes_received] = '\0';
+		permission = atoi(buffer);
+	}
+
+	// Kiểm tra permission từ server
+	if (permission == 1)
+	{
+		// Yêu cầu người dùng nhập username cần xóa
+		printf("Enter the username to delete: ");
+		fflush(stdout);
 
 		bzero(buffer, BUFF_SIZE);
-		bytes_received = recv(client_sock, buffer, BUFF_SIZE, 0);
-		if (bytes_received <= 0)
-		{
-			fprintf(stderr, "Failed to verify leave request. Try again.\n");
-			return;
-		}
-		else
-		{
-			buffer[bytes_received] = '\0';
-		}
+		fgets(buffer, BUFF_SIZE - 1, stdin);
 
-		if (strcmp(buffer, MSG_FALSE) == 0)
+		// Gửi username cần xóa về server
+		bytes_sent = send(client_sock, buffer, strlen(buffer), 0);
+		if (bytes_sent <= 0)
 		{
-			fprintf(stderr, "Group not found or you are not a member of the group.\n");
+			fprintf(stderr, "Failed to send username to delete to server. Try again.\n");
 			return;
 		}
-		else if (strcmp(buffer, MSG_ERROR) == 0)
-		{
-			fprintf(stderr, "Error occurred. Try again.\n");
-			return;
-		}
-		else
-		{
-			printf("You have left the group: %s\n", groupName);
-			break;
-		}
+	}
+	else
+	{
+		// In thông báo nếu không có quyền
+		printf("You don't have permission to delete members.\n");
 	}
 }
