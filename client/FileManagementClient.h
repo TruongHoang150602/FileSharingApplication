@@ -19,6 +19,7 @@
 #define MSG_RECV "Received."
 #define MSG_ACCEPT "Accept"
 #define MSG_ERROR "ERROR"
+#define MSG_CANCEL "Cancel"
 
 void fileManager(int client_sock);
 int upload(int client_sock, char *file_path);
@@ -29,4 +30,5 @@ int request_file(int client_sock);
 int createFolder(int client_sock);
 void getListFile(int client_sock);
 int renameFile(int client_sock);
+int copyFile(int client_sock);
 int deleteFile(int client_sock);
