@@ -51,6 +51,9 @@ void fileManager(int conn_sock, char *path, int permission)
 			printf("rename file end\n");
 			break;
 		case 6:
+			printf("copy file\n");
+			renameFile(conn_sock, path, permission);
+			printf("copy file end\n");
 			break;
 		case 7:
 			printf("delete file");

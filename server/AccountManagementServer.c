@@ -490,23 +490,14 @@ void freeAccount(Account *root)
 	}
 }
 
-void homepage(int sockfd)
+void homepage(Group *root, int sockfd)
 {
 	char recv_data[BUFF_SIZE];
 	int bytes_received;
 
 	// int status;
 	int choice;
-
-	Group *root = (Group *)calloc(1, sizeof(Group));
-
 	FILE *db = fopen("../group.txt", "r+");
-	if (db == NULL)
-	{
-		fprintf(stderr, "cannot open group list file\n");
-		exit(2);
-	}
-	readGroupInfo(root, db);
 
 	// start conversation
 	do
