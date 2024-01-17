@@ -1,6 +1,4 @@
 Quang_Folder Quang Truong Nam
-TestGroup Quang
 Truong_Folder Truong Quang
 Nam_Folder Nam Test
 Test_Folder Test
-ABC Truong

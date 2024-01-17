@@ -255,13 +255,13 @@ void getIntoGroup(Group *root, int conn_sock, FILE *db)
 			if (strcmp(tmp->owner, owner) == 0)
 			{ // can delete file
 				fprintf(stderr, "Client is owner of this group.\n");
-				groupManager(conn_sock, groupName, 1);
+				groupManager(tmp, conn_sock, groupName, 1);
 				return;
 			}
 			else
 			{
 				fprintf(stderr, "Client is not owner of this group.\n");
-				groupManager(conn_sock, groupName, 0);
+				groupManager(tmp, conn_sock, groupName, 0);
 				return;
 			}
 		}
@@ -350,7 +350,7 @@ void freeGroupList(Group *root)
 	}
 }
 
-void groupManager(int conn_sock, char *path, int permission)
+void groupManager(Group *group, int conn_sock, char *path, int permission)
 {
 	char recv_data[BUFF_SIZE];
 	int bytes_received;
@@ -361,7 +361,7 @@ void groupManager(int conn_sock, char *path, int permission)
 	// start conversation
 	do
 	{
-		printf("Group manager");
+		printf("Group manager: ");
 		// receives message from client
 		memset(recv_data, 0, BUFF_SIZE);
 		bytes_received = recv(conn_sock, recv_data, BUFF_SIZE, 0); // blocking
@@ -379,6 +379,7 @@ void groupManager(int conn_sock, char *path, int permission)
 			fileManager(conn_sock, path, permission);
 			break;
 		case 2:
+			getGroupMember(group, conn_sock);
 			break;
 		case 3:
 			break;
@@ -435,72 +436,37 @@ void getListGroup(Group *root, int conn_sock)
 	return;
 }
 
-void getGroupMember(Group *root, int conn_sock)
+void getGroupMember(Group *group, int conn_sock)
 {
 	char groupName[255];
 	char list_member[1024] = "Group name: ";
 	Group *tmp;
 	int bytes_sent, bytes_received;
 
-	while (1)
+	if (strcmp(groupName, MSG_FALSE) == 0)
 	{
-		bzero(groupName, 255);
-		bytes_received = recv(conn_sock, groupName, 256, 0);
-		if (bytes_received <= 0)
-		{
-			fprintf(stderr, "Failed to receive group name from client. Try again.\n");
-			return;
-		}
-		else
-			groupName[bytes_received] = '\0';
+		printf("Cancel");
+		return;
+	}
 
-		if (strcmp(groupName, MSG_FALSE) == 0)
-		{
-			printf("Cancel");
-			return;
-		}
+	printf("%s %s\n", group->groupName, group->owner);
+	strcat(list_member, group->groupName);
+	strcat(list_member, "\n");
+	strcat(list_member, "Owner: ");
+	strcat(list_member, group->owner);
+	strcat(list_member, "\n");
+	strcat(list_member, "Member: ");
+	while (group->members != NULL)
+	{
+		strcat(list_member, group->members->name);
+		strcat(list_member, ", ");
+		group->members = group->members->next;
+	}
 
-		if (root->next == NULL)
-		{
-			fprintf(stderr, "Empty database.\n");
-			bytes_sent = send(conn_sock, MSG_ERROR, strlen(MSG_ERROR), 0);
-			if (bytes_sent <= 0)
-			{
-				fprintf(stderr, "Failed to send signal to client. Try again.\n");
-				return;
-			}
-			return;
-		}
-
-		tmp = root->next;
-		while (tmp != NULL)
-		{
-			if (strcmp(tmp->groupName, groupName) == 0)
-			{
-				printf("%s %s\n", tmp->groupName, tmp->owner);
-				strcat(list_member, tmp->groupName);
-				strcat(list_member, "\n");
-				strcat(list_member, "Owner: ");
-				strcat(list_member, tmp->owner);
-				strcat(list_member, "\n");
-				strcat(list_member, "Member: ");
-				while (tmp->members != NULL)
-				{
-					strcat(list_member, tmp->members->name);
-					strcat(list_member, ", ");
-					tmp->members = tmp->members->next;
-				}
-				break;
-			}
-			tmp = tmp->next;
-		}
-
-		bytes_sent = send(conn_sock, list_member, strlen(list_member), 0);
-		if (bytes_sent <= 0)
-		{
-			fprintf(stderr, "Group not found. Try again.\n");
-			return;
-		}
-		break;
+	bytes_sent = send(conn_sock, list_member, strlen(list_member), 0);
+	if (bytes_sent <= 0)
+	{
+		fprintf(stderr, "Group not found. Try again.\n");
+		return;
 	}
 }

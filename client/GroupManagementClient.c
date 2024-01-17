@@ -244,7 +244,7 @@ void groupManager(int client_sock)
 		printf("	3. Approve.\n");
 		printf("	4. Delete member.\n");
 		printf("	5. Leave.\n");
-		printf("Your choice (1-4, other to quit):\n");
+		printf("Your choice (1-5, other to quit):\n");
 		scanf("%d", &choice);
 		while ((cache = getchar()) != '\n' && cache != EOF)
 			;
@@ -264,19 +264,22 @@ void groupManager(int client_sock)
 			fileManager(client_sock);
 			break;
 		case 2:
-			download(client_sock, "Downloaded");
+			getGroupMember(client_sock);
 			break;
 		case 3:
-			deleteFile(client_sock);
+			printf("Dang phat trien. Moi tham gia");
 			break;
 		case 4:
-			createFolder(client_sock);
+			printf("Dang phat trien. Xoa thanh vien");
+			break;
+		case 5:
+			leaveGroup(client_sock);
 			break;
 		default:
 			break;
 		}
 
-	} while (choice > 0 && choice < 5);
+	} while (choice > 0 && choice < 6);
 
 	return;
 }
@@ -307,62 +310,37 @@ void getListGroup(int client_sock)
 
 	return;
 }
+
 void getGroupMember(int client_sock)
 {
 	char groupName[255];
 	char buffer[BUFF_SIZE];
 	int bytes_sent, bytes_received;
 
-	while (1)
+	bzero(buffer, BUFF_SIZE);
+	bytes_received = recv(client_sock, buffer, BUFF_SIZE, 0);
+	if (bytes_received <= 0)
 	{
-		printf("Please enter the group name: ");
-		fgets(groupName, 255, stdin);
-		groupName[strlen(groupName) - 1] = '\0';
-
-		if (groupName[0] == '\0')
-		{
-			bytes_sent = send(client_sock, MSG_FALSE, strlen(MSG_FALSE), 0);
-			if (bytes_sent <= 0)
-			{
-				fprintf(stderr, "Failed to connect to server. Try again.\n");
-				return;
-			}
-			return;
-		}
-
-		bytes_sent = send(client_sock, groupName, strlen(groupName), 0);
-		if (bytes_sent <= 0)
-		{
-			fprintf(stderr, "Failed to connect to server. Try again.\n");
-			return;
-		}
-
-		bzero(buffer, BUFF_SIZE);
-		bytes_received = recv(client_sock, buffer, BUFF_SIZE, 0);
-		if (bytes_received <= 0)
-		{
-			fprintf(stderr, "Failed to verify username. Try again.\n");
-			return;
-		}
-		else
-		{
-			buffer[bytes_received] = '\0';
-		}
-		if (strcmp(buffer, MSG_FALSE) == 0)
-		{
-			fprintf(stderr, "Group not found.\n");
-			return;
-		}
-		else if (strcmp(buffer, MSG_ERROR) == 0)
-		{
-			fprintf(stderr, "Error occurred. Try again.\n");
-			return;
-		}
-		else
-		{
-			printf("%s", buffer);
-			break;
-		}
+		fprintf(stderr, "Failed to verify username. Try again.\n");
+		return;
+	}
+	else
+	{
+		buffer[bytes_received] = '\0';
+	}
+	if (strcmp(buffer, MSG_FALSE) == 0)
+	{
+		fprintf(stderr, "Group not found.\n");
+		return;
+	}
+	else if (strcmp(buffer, MSG_ERROR) == 0)
+	{
+		fprintf(stderr, "Error occurred. Try again.\n");
+		return;
+	}
+	else
+	{
+		printf("%s", buffer);
 	}
 }
 
