@@ -384,6 +384,15 @@ void groupManager(Group *group, int conn_sock, char *path, int permission)
 		case 3:
 			break;
 		case 4:
+			printf("Delete member\n");
+			deleteMember(group, conn_sock);
+			printf("Delete member end\n");
+			break;
+		case 5:
+			printf("Leave");
+			leaveGroup(group, conn_sock);
+			printf("End leave");
+			return;
 			break;
 		default:
 			break;
@@ -441,7 +450,7 @@ void getGroupMember(Group *group, int conn_sock)
 	char groupName[255];
 	char list_member[1024] = "Group name: ";
 	Group *tmp;
-	int bytes_sent, bytes_received;
+	int bytes_sent;
 
 	if (strcmp(groupName, MSG_FALSE) == 0)
 	{
@@ -468,5 +477,127 @@ void getGroupMember(Group *group, int conn_sock)
 	{
 		fprintf(stderr, "Group not found. Try again.\n");
 		return;
+	}
+}
+
+void leaveGroup(Group *group, int conn_sock)
+{
+	char username[255];
+	int bytes_received;
+	bzero(username, 255);
+	bytes_received = recv(conn_sock, username, 255, 0);
+	if (bytes_received <= 0)
+	{
+		fprintf(stderr, "Failed to receive owner from client. Try again.\n");
+		return;
+	}
+	else
+		username[bytes_received] = '\0';
+
+	printf("%s\n", username);
+
+	if (group == NULL || username == NULL)
+	{
+		// Kiểm tra đối số đầu vào
+		printf("Invalid input.\n");
+		return;
+	}
+
+	Member *currentMember = group->members;
+	Member *prevMember = NULL;
+
+	// Duyệt qua danh sách members của nhóm
+	while (currentMember != NULL)
+	{
+		// So sánh tên người dùng
+		if (strcmp(currentMember->name, username) == 0)
+		{
+			if (prevMember == NULL)
+			{
+				group->members = currentMember->next;
+			}
+			else
+			{
+				prevMember->next = currentMember->next;
+			}
+			free(currentMember->name);
+			free(currentMember);
+			return;
+		}
+
+		prevMember = currentMember;
+		currentMember = currentMember->next;
+	}
+}
+
+void deleteMember(Group *group, int conn_sock)
+{
+	char username[255];
+	int bytes_received, bytes_sent;
+	bzero(username, 255);
+
+	bytes_received = recv(conn_sock, username, 255, 0);
+	if (bytes_received <= 0)
+	{
+		fprintf(stderr, "Failed to receive username from client. Try again.\n");
+		return;
+	}
+	else
+	{
+		username[bytes_received] = '\0';
+	}
+
+	printf("%s\n", username);
+
+	int permission = !(strcmp(group->owner, username));
+	char permission_str[10];
+	snprintf(permission_str, sizeof(permission_str), "%d", permission);
+
+	bytes_sent = send(conn_sock, permission_str, strlen(permission_str), 0);
+	if (bytes_sent <= 0)
+	{
+		fprintf(stderr, "Failed to send permission status. Try again.\n");
+	}
+	if (permission == 0)
+	{
+		return;
+	}
+
+	bzero(username, 255);
+	bytes_received = recv(conn_sock, username, 255, 0);
+	if (bytes_received <= 0)
+	{
+		fprintf(stderr, "Failed to receive username from client. Try again.\n");
+		return;
+	}
+	else
+	{
+		username[bytes_received] = '\0';
+	}
+
+	Member *currentMember = group->members;
+	Member *prevMember = NULL;
+
+	// Duyệt qua danh sách members của nhóm
+	while (currentMember != NULL)
+	{
+		// So sánh tên người dùng
+		if (strcmp(currentMember->name, username) == 0)
+		{
+			if (prevMember == NULL)
+			{
+				group->members = currentMember->next;
+			}
+			else
+			{
+				prevMember->next = currentMember->next;
+			}
+			free(currentMember->name);
+			free(currentMember);
+			return;
+		}
+
+		prevMember = currentMember;
+		currentMember = currentMember->next;
 	}
 }

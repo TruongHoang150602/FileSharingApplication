@@ -57,6 +57,9 @@ void fileManager(int client_sock)
 		case 5:
 			renameFile(client_sock);
 			break;
+		case 6:
+			copyFile(client_sock);
+			break;
 		case 7:
 			deleteFile(client_sock);
 			break;
@@ -426,6 +429,60 @@ int renameFile(int client_sock)
 	}
 
 	printf("File: %s has been renamed.\n", recv_data);
+
+	// Successful block
+	return 0;
+}
+
+int copyFile(int client_sock)
+{
+	char recv_data[BUFF_SIZE];
+	int bytes_sent, bytes_received;
+	int status;
+	char new_name[255];
+
+	// Choose file from server
+	printf("Choose file from server:\n");
+	status = request_file(client_sock);
+	if (status == -1)
+	{
+		printf("Error occurred while getting file status from server.\n");
+		return -1;
+	}
+	else if (status == 1)
+	{
+		printf("Cancel rename. Close the connection.\n");
+		return 1;
+	}
+
+	printf("Please enter the new path: ");
+	fgets(new_name, 255, stdin);
+	new_name[strlen(new_name) - 1] = '\0';
+
+	bytes_sent = send(client_sock, new_name, strlen(new_name), 0);
+	if (bytes_sent < 0)
+	{
+		perror("\nError: ");
+		return -1;
+	}
+
+	bytes_received = recv(client_sock, recv_data, BUFF_SIZE - 1, 0);
+	if (bytes_received < 0)
+	{
+		perror("Error: ");
+		return -1; // meet error, aborted
+	}
+	else
+		recv_data[bytes_received] = '\0';
+
+	if (strcmp(recv_data, MSG_ERROR) == 0)
+	{
+		// File has not been renamed on the server
+		printf("File has not been copied on the server.\n");
+		return -1;
+	}
+
+	printf("File: %s has been copied.\n", recv_data);
 
 	// Successful block
 	return 0;

@@ -123,6 +123,18 @@ void *handleClient(void *arg)
 	free(arg);
 	pthread_detach(pthread_self());
 
+	Group *rootGroup = (Group *)calloc(1, sizeof(Group));
+
+	FILE *dbGroup = fopen("../group.txt", "r+");
+	if (dbGroup == NULL)
+	{
+		fprintf(stderr, "cannot open group list file\n");
+		exit(2);
+	}
+	readGroupInfo(rootGroup, dbGroup);
+
+	fclose(dbGroup);
+
 	// start conversation
 	while (1)
 	{
@@ -144,7 +156,7 @@ void *handleClient(void *arg)
 		case 2:
 			signInAccount(root, sockfd, db, &status);
 			if (status == 1)
-				homepage(sockfd);
+				homepage(rootGroup, sockfd);
 			break;
 		case 3:
 			searchAccount(root, sockfd);

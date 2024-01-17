@@ -348,7 +348,7 @@ int homepage(int client_sock, char *sessionID)
 			getIntoGroup(client_sock, sessionID, &status, &groupID);
 			if (status == 1)
 			{
-				groupManager(client_sock);
+				groupManager(client_sock, sessionID);
 				status = 0;	   // after groupManager, set status to 0 (log out)
 				free(groupID); // free groupID
 			}
@@ -361,9 +361,6 @@ int homepage(int client_sock, char *sessionID)
 			break;
 		case 4:
 			getListGroup(client_sock);
-			break;
-		case 5:
-			getGroupMember(client_sock);
 			break;
 		default:
 			return 0;

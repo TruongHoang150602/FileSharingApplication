@@ -42,12 +42,13 @@ typedef struct groupNode
 	struct groupNode *next;
 } Group;
 
-void homepage(int sockfd);
+void homepage(Group *root, int sockfd);
 void readGroupInfo(Group *root, FILE *fp);
 void createGroup(Group *root, int conn_sock, FILE *db);
 void getIntoGroup(Group *root, int conn_sock, FILE *db);
 void searchGroup(Group *root, int conn_sock);
 void freeGroupList(Group *root);
 void groupManager(Group *group, int conn_sock, char *path, int permission);
+void leaveGroup(Group *group, int conn_sock);
 void getListGroup(Group *root, int conn_sock);
-void getGroupMember(Group *root, int conn_sock);
+void getGroupMember(Group *group, int conn_sock);
